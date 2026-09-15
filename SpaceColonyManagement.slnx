@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Business/Business.csproj" />
+    <Project Path="src/Core/Core.csproj" />
+    <Project Path="src/DataAccess/DataAccess.csproj" />
+    <Project Path="src/Entities/Entities.csproj" />
+    <Project Path="src/Web/Web.csproj" />
+  </Folder>
+</Solution>
