@@ -1,4 +1,6 @@
+using Entities.Buildings;
 using Entities.Colonists;
+using Entities.Resources;
 using Entities.Users;
 
 namespace Entities.Colonies;
@@ -19,5 +21,11 @@ public class Colony
 
     public User User { get; set; } = null!;
 
+    public decimal ResourceCapacity { get; set; } = 500;
+
     public ICollection<Colonist> Colonists { get; set; } = new List<Colonist>();
+
+    public ICollection<ColonyResource> Resources { get; set; } = new List<ColonyResource>();
+
+    public ICollection<Building> Buildings { get; set; } = new List<Building>();
 }
