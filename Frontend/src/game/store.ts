@@ -14,7 +14,10 @@ type GameStore = {
   inventoryOpen: boolean;
   inventory: { iron: number; rations: number; water: number };
   objective: string;
+  moveTarget: { x: number; z: number } | null;
   setPlayer: (x: number, z: number) => void;
+  setMoveTarget: (x: number, z: number) => void;
+  clearMoveTarget: () => void;
   selectNpc: (name: string | null) => void;
   enterScene: (scene: GameScene) => void;
   togglePause: () => void;
@@ -35,9 +38,12 @@ export const useGameStore = create<GameStore>((set) => ({
   inventoryOpen: false,
   inventory: { iron: 24, rations: 3, water: 2 },
   objective: "Speak with Maya at the iron mine",
+  moveTarget: null,
   setPlayer: (x, z) => set({ player: { x, z } }),
+  setMoveTarget: (x, z) => set({ moveTarget: { x, z } }),
+  clearMoveTarget: () => set({ moveTarget: null }),
   selectNpc: (selectedNpc) => set({ selectedNpc }),
-  enterScene: (scene) => set({ scene, selectedNpc: null }),
+  enterScene: (scene) => set({ scene, selectedNpc: null, moveTarget: null }),
   togglePause: () => set((state) => ({ paused: !state.paused })),
   toggleQuest: () => set((state) => ({ questOpen: !state.questOpen, inventoryOpen: false })),
   toggleInventory: () => set((state) => ({ inventoryOpen: !state.inventoryOpen, questOpen: false })),

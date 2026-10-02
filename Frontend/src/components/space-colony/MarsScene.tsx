@@ -34,7 +34,7 @@ function createMarsTexture() {
   return texture;
 }
 
-function Planet() {
+function Planet({ onEnter }: { onEnter?: () => void }) {
   const planet = useRef<THREE.Mesh>(null);
   const texture = useMemo(createMarsTexture, []);
   useFrame((_, delta) => {
@@ -42,9 +42,9 @@ function Planet() {
   });
   return (
     <group rotation-z={-0.18}>
-      <mesh ref={planet} castShadow>
+      <mesh ref={planet} castShadow onClick={(e) => { if (!onEnter) return; e.stopPropagation(); onEnter(); }} onPointerOver={() => { if (onEnter) document.body.style.cursor = "pointer"; }} onPointerOut={() => { document.body.style.cursor = ""; }}>
         <sphereGeometry args={[2, 96, 96]} />
-        <meshStandardMaterial map={texture ?? undefined} roughness={0.86} metalness={0.02} />
+        <meshStandardMaterial map={texture} roughness={0.86} metalness={0.02} />
       </mesh>
       <mesh scale={1.008}>
         <sphereGeometry args={[2, 64, 64]} />
@@ -54,7 +54,7 @@ function Planet() {
   );
 }
 
-export function MarsScene({ compact = false }: { compact?: boolean }) {
+export function MarsScene({ compact = false, onEnter }: { compact?: boolean; onEnter?: () => void }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className="h-full w-full bg-space" aria-label="Loading Mars model" />;
@@ -66,7 +66,7 @@ export function MarsScene({ compact = false }: { compact?: boolean }) {
           <directionalLight position={[-4, 3, 5]} intensity={3.4} color="#ffd1b7" />
           <pointLight position={[4, -1, 2]} intensity={5} color="#8b2f21" />
           <Stars radius={38} depth={24} count={compact ? 250 : 650} factor={2} saturation={0.05} fade speed={0.15} />
-          <Planet />
+          <Planet {...(onEnter ? { onEnter } : {})} />
           <Environment resolution={64}>
             <Lightformer intensity={2} position={[0, 5, 4]} scale={[8, 8, 1]} color="#ffc2a0" />
           </Environment>

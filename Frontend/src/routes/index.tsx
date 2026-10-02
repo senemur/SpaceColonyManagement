@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowDownRight, ArrowUpRight, CircleDot, CloudSun, Gamepad2, Hammer, Radio, Users, Wifi } from "lucide-react";
 import { AppShell } from "../components/space-colony/AppShell";
 import { MarsScene } from "../components/space-colony/MarsScene";
 import { buildings, resources } from "../components/space-colony/data";
 import { Metric, ProgressBar, SectionHeading, StatusBadge } from "../components/space-colony/Common";
-import { Button } from "../components/ui/Button";
+import { Button } from "../components/ui/gameButton";
 
 export const Route = createFileRoute("/")({
   head: () => ({ meta: [
@@ -18,16 +18,16 @@ export const Route = createFileRoute("/")({
 });
 
 function Dashboard() {
+  const navigate = useNavigate();
   return <AppShell>
     <section className="relative mb-6 min-h-[320px] overflow-hidden rounded-lg border border-border bg-space sm:min-h-[360px]">
-      <div className="absolute inset-0 right-0 sm:left-[42%]"><MarsScene compact /></div>
+      <div className="absolute inset-0 right-0 sm:left-[42%]"><MarsScene compact onEnter={() => navigate({ to: "/colony" })} /></div>
       <div className="pointer-events-none absolute inset-0 bg-hero-shade" />
-      <Link to="/colony" aria-label="Enter and explore New Horizon colony" className="absolute inset-y-0 right-0 z-10 w-full cursor-pointer sm:w-[58%]" />
-      <div className="relative z-10 flex min-h-[320px] max-w-xl flex-col justify-between p-6 sm:min-h-[360px] sm:p-8">
+      <div className="pointer-events-none relative z-10 flex min-h-[320px] max-w-xl flex-col justify-between p-6 sm:min-h-[360px] sm:p-8">
         <div><div className="mb-5 flex items-center gap-2 text-xs font-bold uppercase text-primary"><span className="size-2 rounded-full bg-positive" /> Primary settlement</div><h1 className="text-3xl font-bold sm:text-5xl">NEW HORIZON</h1><p className="mt-2 text-sm text-muted-foreground">Mars Colony · Arcadia Planitia</p><div className="mt-6 flex flex-wrap gap-2"><StatusBadge tone="positive">Systems nominal</StatusBadge><StatusBadge tone="info">10 colonists</StatusBadge><StatusBadge tone="warning">Solar storm active</StatusBadge></div></div>
         <div className="grid max-w-lg grid-cols-3 gap-3"><Metric label="Sol" value="23" /><Metric label="Local time" value="14:32" /><Metric label="Temperature" value="−54°C" /></div>
       </div>
-      <div className="absolute bottom-5 right-5 z-20 hidden items-center gap-2 rounded-md border border-game-border bg-game-panel px-3 py-2 text-xs font-semibold sm:flex"><Gamepad2 size={14} className="text-primary" /> Click Mars to enter colony</div>
+      <Link to="/colony" className="absolute bottom-5 right-5 z-20 hidden items-center gap-2 rounded-md border border-game-border bg-game-panel px-3 py-2 text-xs font-semibold sm:flex"><Gamepad2 size={14} className="text-primary" /> Click Mars to enter colony</Link>
     </section>
 
     <div className="mb-7 grid gap-3 border border-primary/25 bg-primary/7 p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
