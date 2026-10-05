@@ -42,7 +42,21 @@ function Planet({ onEnter }: { onEnter?: () => void }) {
   });
   return (
     <group rotation-z={-0.18}>
-      <mesh ref={planet} castShadow onClick={(e) => { if (!onEnter) return; e.stopPropagation(); onEnter(); }} onPointerOver={() => { if (onEnter) document.body.style.cursor = "pointer"; }} onPointerOut={() => { document.body.style.cursor = ""; }}>
+      <mesh
+        ref={planet}
+        castShadow
+        onClick={(e) => {
+          if (!onEnter) return;
+          e.stopPropagation();
+          onEnter();
+        }}
+        onPointerOver={() => {
+          if (onEnter) document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "";
+        }}
+      >
         <sphereGeometry args={[2, 96, 96]} />
         <meshStandardMaterial map={texture} roughness={0.86} metalness={0.02} />
       </mesh>
@@ -54,23 +68,47 @@ function Planet({ onEnter }: { onEnter?: () => void }) {
   );
 }
 
-export function MarsScene({ compact = false, onEnter }: { compact?: boolean; onEnter?: () => void }) {
+export function MarsScene({
+  compact = false,
+  onEnter,
+}: {
+  compact?: boolean;
+  onEnter?: () => void;
+}) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return <div className="h-full w-full bg-space" aria-label="Loading Mars model" />;
   return (
     <div className="h-full w-full" aria-label="Interactive 3D model of Mars">
-      <Canvas dpr={1} camera={{ position: [0, 0.15, compact ? 6.8 : 6.2], fov: 42 }} gl={{ antialias: true, alpha: true }}>
+      <Canvas
+        dpr={1}
+        camera={{ position: [0, 0.15, compact ? 6.8 : 6.2], fov: 42 }}
+        gl={{ antialias: true, alpha: true }}
+      >
         <Suspense fallback={null}>
           <ambientLight intensity={0.45} />
           <directionalLight position={[-4, 3, 5]} intensity={3.4} color="#ffd1b7" />
           <pointLight position={[4, -1, 2]} intensity={5} color="#8b2f21" />
-          <Stars radius={38} depth={24} count={compact ? 250 : 650} factor={2} saturation={0.05} fade speed={0.15} />
+          <Stars
+            radius={38}
+            depth={24}
+            count={compact ? 250 : 650}
+            factor={2}
+            saturation={0.05}
+            fade
+            speed={0.15}
+          />
           <Planet {...(onEnter ? { onEnter } : {})} />
           <Environment resolution={64}>
             <Lightformer intensity={2} position={[0, 5, 4]} scale={[8, 8, 1]} color="#ffc2a0" />
           </Environment>
-          <OrbitControls enablePan={false} enableZoom={!compact} minDistance={5} maxDistance={8} autoRotate={false} />
+          <OrbitControls
+            enablePan={false}
+            enableZoom={!compact}
+            minDistance={5}
+            maxDistance={8}
+            autoRotate={false}
+          />
         </Suspense>
       </Canvas>
     </div>
