@@ -91,7 +91,7 @@ export function initMars3D() {
     return h;
   }
 
-  const PAD_R = { habitat: 6.4, solar: 5.5, lab: 5.5, mine: 6.0, farm: 5.8, rocket: 7.0 };
+  const PAD_R = { habitat: 6.5, solar: 5.5, lab: 9.0, mine: 6.0, farm: 12.5, rocket: 7.0 };
   const pads = colony.builds.map((b) => {
     const r = PAD_R[b.t] ?? 5.5;
     return { x: b.x, z: b.z, r, y: baseHeight(b.x, b.z) };
@@ -402,40 +402,96 @@ export function initMars3D() {
     },
     lab() {
       const g = new THREE.Group();
-      g.add(box(9, 3.4, 6, MAT.white, 0, 1.7, 0));
-      g.add(box(9.3, 0.4, 6.3, MAT.orange, 0, 3.55, 0));
-      g.add(box(7.4, 1.2, 0.2, MAT.glass, 0, 2.1, 3.05));
-      g.add(box(0.2, 1.2, 4.6, MAT.glass, -4.55, 2.1, 0));
-      const tank = cyl(1.7, 1.7, 3, MAT.glass, 14);
-      tank.position.set(5.4, 1.5, 2.2);
+      g.add(box(14, 4.2, 9, MAT.white, 0, 2.1, 0));
+      g.add(box(14.4, 0.45, 9.4, MAT.orange, 0, 4.47, 0));
+      g.add(box(11, 1.4, 0.22, MAT.glass, 0, 2.8, 4.55));
+      g.add(box(11, 1.4, 0.22, MAT.glass, 0, 2.8, -4.55));
+      g.add(box(0.22, 1.4, 7.2, MAT.glass, -7.05, 2.8, 0));
+      g.add(box(0.22, 1.4, 7.2, MAT.glass, 7.05, 2.8, 0));
+      // Main research tanks
+      const tank = cyl(1.7, 1.7, 3.8, MAT.glass, 14);
+      tank.position.set(6.5, 1.9, 3.2);
       g.add(tank);
-      const cap = cyl(1.85, 1.85, 0.35, MAT.metalD, 14);
-      cap.position.set(5.4, 0.2, 2.2);
+      const cap = cyl(1.85, 1.85, 0.38, MAT.metalD, 14);
+      cap.position.set(6.5, 0.18, 3.2);
       g.add(cap);
-      const cap2 = cyl(1.85, 1.85, 0.35, MAT.metalD, 14);
-      cap2.position.set(5.4, 3.05, 2.2);
+      const cap2 = cyl(1.85, 1.85, 0.38, MAT.metalD, 14);
+      cap2.position.set(6.5, 3.96, 3.2);
       g.add(cap2);
+      // Second smaller tank
+      const tank2 = cyl(1.1, 1.1, 2.6, MAT.glass, 12);
+      tank2.position.set(6.5, 1.3, -3.0);
+      g.add(tank2);
+      const cap3 = cyl(1.22, 1.22, 0.28, MAT.metalD, 12);
+      cap3.position.set(6.5, 0.18, -3.0);
+      g.add(cap3);
+      const cap4 = cyl(1.22, 1.22, 0.28, MAT.metalD, 12);
+      cap4.position.set(6.5, 2.74, -3.0);
+      g.add(cap4);
+      // Equipment racks
+      g.add(box(0.35, 2.8, 6, MAT.metalD, -6.2, 1.4, 0));
+      g.add(box(3, 0.18, 6, MAT.dark, -5.5, 2.65, 0));
+      // Antenna
+      const ant2 = cyl(0.06, 0.06, 4.2, MAT.white, 6);
+      ant2.position.set(1.5, 6.5, 2.0);
+      g.add(ant2);
       return g;
     },
     mine() {
       const g = new THREE.Group();
-      g.add(cyl(3.1, 4.2, 2.2, MAT.rock, 9).translateY(1.1));
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(3.1, 2.2, 9), MAT.dark);
-      cone.position.y = 3.2;
+      // Main shaft collar — bigger
+      g.add(cyl(4.5, 6.0, 3.0, MAT.rock, 10).translateY(1.5));
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(4.5, 3.2, 10), MAT.dark);
+      cone.position.y = 4.6;
       g.add(cone);
-      const conv = box(1.4, 0.5, 7, MAT.metalD, 3.4, 2.6, -1);
+      // Conveyor belt — longer and more prominent
+      const conv = box(2.0, 0.7, 11, MAT.metalD, 5.0, 3.5, -1.5);
       conv.rotation.x = -0.32;
       g.add(conv);
-      const tower = cyl(0.35, 0.45, 6, MAT.metal, 8);
-      tower.position.set(4.6, 3, 0);
+      // Conveyor side rails
+      const rail1 = box(0.2, 0.5, 11, MAT.metal, 4.0, 3.8, -1.5);
+      rail1.rotation.x = -0.32;
+      g.add(rail1);
+      const rail2 = box(0.2, 0.5, 11, MAT.metal, 6.0, 3.8, -1.5);
+      rail2.rotation.x = -0.32;
+      g.add(rail2);
+      // Main tower
+      const tower = cyl(0.48, 0.62, 9, MAT.metal, 8);
+      tower.position.set(6.0, 4.5, 0);
       g.add(tower);
-      const arm = box(0.5, 0.5, 4.2, MAT.orange, 2.6, 5.4, 0);
+      // Cross arm
+      const arm = box(0.6, 0.6, 5.8, MAT.orange, 3.4, 8.0, 0);
       arm.rotation.y = 0.5;
       g.add(arm);
-      g.add(box(1.5, 1.2, 1.5, MAT.dark, 0.9, 5.9, -1.6));
-      for (let i = 0; i < 5; i++) {
-        const r = new THREE.Mesh(new THREE.DodecahedronGeometry(rnd(0.4, 0.8), 0), MAT.rock);
-        r.position.set(rnd(-6, -3.4), 0.4, rnd(-3, 3));
+      // Control cabin
+      g.add(box(2.0, 1.6, 2.0, MAT.dark, 1.2, 8.2, -2.2));
+      g.add(box(1.8, 0.9, 0.15, MAT.glass, 1.2, 8.2, -3.15));
+      // Scaffolding legs
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2;
+        const leg = cyl(0.14, 0.18, 8.5, MAT.metalD, 6);
+        leg.position.set(Math.cos(a) * 5.2, 4.25, Math.sin(a) * 5.2);
+        leg.rotation.z = Math.cos(a) * 0.13;
+        leg.rotation.x = Math.sin(a) * 0.13;
+        g.add(leg);
+      }
+      // Warning lights
+      const warnMat = new THREE.MeshStandardMaterial({
+        color: 0xff4400,
+        emissive: 0xff2200,
+        emissiveIntensity: 2.5,
+        roughness: 0.3,
+      });
+      const wl1 = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), warnMat);
+      wl1.position.set(6.0, 9.2, 0);
+      g.add(wl1);
+      const wl2 = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), warnMat);
+      wl2.position.set(0, 7.9, 0);
+      g.add(wl2);
+      // Ore boulders
+      for (let i = 0; i < 8; i++) {
+        const r = new THREE.Mesh(new THREE.DodecahedronGeometry(rnd(0.5, 1.1), 0), MAT.rock);
+        r.position.set(rnd(-8, -4.5), 0.5, rnd(-4, 4));
         r.castShadow = true;
         g.add(r);
       }
@@ -1011,9 +1067,6 @@ export function initMars3D() {
     });
   }
 
-  const camRay = new THREE.Raycaster();
-  const CAM_IGNORE = new Set(["terrain", "rock", "crew"]);
-
   let meshCache = null;
   function raycastMeshes() {
     if (!meshCache) {
@@ -1026,30 +1079,6 @@ export function initMars3D() {
   }
   function visibleMeshes() {
     return raycastMeshes().filter((o) => o.visible);
-  }
-
-  function cameraBlockRay(from, to) {
-    const dir = to.clone().sub(from);
-    const len = dir.length();
-    if (len < 0.01) return null;
-    dir.divideScalar(len);
-    camRay.set(from, dir);
-    camRay.far = len;
-    const hits = camRay.intersectObjects(camIntersectables, true);
-    for (const h of hits) {
-      const k = h.object.userData?.kind;
-      if (CAM_IGNORE.has(k)) continue;
-      if (!k) continue;
-      const d = h.distance;
-      if (d >= len) return null;
-      const safe = Math.min(1.6, Math.max(0.6, d - 1.4));
-      const p = from.clone().addScaledVector(dir, safe);
-      p.y = from.y + 1.35;
-      p.y = Math.max(p.y, groundY(p.x, p.z) + 1.5);
-      p.y = Math.min(p.y, from.y + 2.2);
-      return p;
-    }
-    return null;
   }
   const player = {
     pos: new THREE.Vector3(2, 0, 44),
@@ -1160,15 +1189,27 @@ export function initMars3D() {
   let locked = false;
 
   const onClickCanvas = () => {
-    if (locked) return;
+    // Always try to (re-)acquire pointer lock on canvas click
     try {
       canvas.requestPointerLock();
     } catch {}
   };
   addEvt(canvas, "click", onClickCanvas);
+  
+  const playOverlay = $("#playOverlay");
+  if (playOverlay) {
+    addEvt(playOverlay, "click", onClickCanvas);
+  }
+
+  // Right-click releases pointer lock
+  addEvt(canvas, "contextmenu", (e) => {
+    e.preventDefault();
+    if (locked) document.exitPointerLock();
+  });
 
   const onPLock = () => {
     locked = document.pointerLockElement === canvas;
+    if (playOverlay) playOverlay.classList.toggle("hide", locked);
   };
   addEvt(document, "pointerlockchange", onPLock);
 
@@ -1205,10 +1246,35 @@ export function initMars3D() {
   addEvt(window, "mouseup", onMU);
   addEvt(window, "mousemove", onMM);
 
+  const GAME_CODES = new Set([
+    "KeyW",
+    "KeyA",
+    "KeyS",
+    "KeyD",
+    "KeyE",
+    "KeyQ",
+    "KeyF",
+    "KeyV",
+    "KeyH",
+    "ShiftLeft",
+    "ShiftRight",
+    "Space",
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+  ]);
   const onKD = (e) => {
+    // Don't capture if user is typing in an input element
+    if (
+      e.target.tagName === "INPUT" ||
+      e.target.tagName === "SELECT" ||
+      e.target.tagName === "TEXTAREA"
+    )
+      return;
     keys[e.code] = true;
+    if (GAME_CODES.has(e.code)) e.preventDefault();
     if (e.code === "Space" && !player.inside) {
-      e.preventDefault();
       if (player.onGround) {
         player.vy = 6.2;
         player.onGround = false;
@@ -1221,6 +1287,13 @@ export function initMars3D() {
     if (e.code === "KeyF") toggleFollow();
     if (e.code === "KeyV") toggleCam();
     if (e.code === "KeyQ") exitInterior();
+    if (e.code === "KeyH") {
+      const helpOverlay = $("#helpOverlay");
+      if (helpOverlay) {
+        helpOverlay.hidden = !helpOverlay.hidden;
+        if (!helpOverlay.hidden && locked) document.exitPointerLock();
+      }
+    }
   };
   const onKU = (e) => {
     keys[e.code] = false;
@@ -1378,10 +1451,9 @@ export function initMars3D() {
         .clone()
         .addScaledVector(back, dist)
         .addScaledVector(right, side * 0.5);
-      want.y = Math.max(want.y, groundY(want.x, want.z) + 0.9);
-      want.y = Math.min(want.y, player.pos.y + 3.4);
-      const occ = cameraBlockRay(player.pos, want);
-      if (occ) want.copy(occ);
+      // Math-based camera height clamping — no raycasting needed
+      want.y = Math.max(want.y, terrainHeight(want.x, want.z) + 1.2);
+      want.y = Math.min(want.y, player.pos.y + 3.8);
       if (camSnap) {
         camera.position.copy(want);
         camSnap = false;
@@ -1424,11 +1496,7 @@ export function initMars3D() {
   }
 
   function interact() {
-    if (player.inside) {
-      // içeride: görev nişanı yoksa çıkış
-      if (!taskTarget) exitInterior();
-      return;
-    }
+    if (player.inside) return;
     const h = nearDoor();
     if (h) {
       enterInterior(h);
@@ -2014,6 +2082,33 @@ export function initMars3D() {
       renderInspect();
     });
 
+  // Help overlay wiring
+  const helpBtn = $("#helpBtn");
+  const helpOverlay = $("#helpOverlay");
+  const helpClose = $("#helpClose");
+  if (helpBtn)
+    addEvt(helpBtn, "click", () => {
+      if (helpOverlay) helpOverlay.hidden = false;
+      if (locked) document.exitPointerLock();
+    });
+  if (helpClose)
+    addEvt(helpClose, "click", () => {
+      if (helpOverlay) helpOverlay.hidden = true;
+    });
+  if (helpOverlay)
+    addEvt(helpOverlay, "click", (e) => {
+      if (e.target === helpOverlay) helpOverlay.hidden = true;
+    });
+
+  // Release pointer lock when interacting with HUD buttons
+  $$(
+    ".act, .pitem, #insClose, #cmdSend, #rosterToggle, .cam-chip, .hud-btn, #helpBtn, #tpClose",
+  ).forEach((el) => {
+    addEvt(el, "mousedown", () => {
+      if (locked) document.exitPointerLock();
+    });
+  });
+
   const mm = $("#minimap");
   const mctx = mm ? mm.getContext("2d") : null;
   const MM_RANGE = 95;
@@ -2169,7 +2264,6 @@ export function initMars3D() {
   };
   addEvt(window, "resize", onResize);
 
-  const camIntersectables = buildMeshes;
   const interactables = [...buildMeshes];
   astrons.forEach((a) => interactables.push(a.root));
 

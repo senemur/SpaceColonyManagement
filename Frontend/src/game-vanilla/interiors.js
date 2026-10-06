@@ -1,4 +1,4 @@
-﻿import * as THREE from "three";
+import * as THREE from "three";
 
 /* =========================================================
    ARES â€” bina iÃ§ mekÃ¢nlarÄ±
@@ -13,13 +13,13 @@ function mats() {
     wall: new THREE.MeshStandardMaterial({
       color: 0xd7d2c8,
       roughness: 0.85,
-      side: THREE.BackSide,
+      side: THREE.DoubleSide,
     }),
     rockWall: new THREE.MeshStandardMaterial({
       color: 0x7a4a33,
       roughness: 1,
       flatShading: true,
-      side: THREE.BackSide,
+      side: THREE.DoubleSide,
     }),
     deck: new THREE.MeshStandardMaterial({ color: 0x9aa0a6, roughness: 0.7, metalness: 0.25 }),
     soil: new THREE.MeshStandardMaterial({ color: 0x4a3226, roughness: 1 }),
@@ -164,7 +164,6 @@ function habitatInterior() {
     new THREE.SphereGeometry(4.05, 22, 14, 0, Math.PI * 2, 0, Math.PI / 2),
     mt.wall,
   );
-  shell.material.side = THREE.BackSide;
   shell.receiveShadow = true;
   g.add(shell);
   const floor = new THREE.Mesh(new THREE.CircleGeometry(4.0, 26), mt.deck);

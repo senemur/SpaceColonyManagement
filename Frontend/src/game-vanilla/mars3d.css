@@ -958,3 +958,157 @@
     }
   }
 }
+
+/* ===== OYUN BAŞLATMA OVERLAY ===== */
+.play-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.58);
+  z-index: 200;
+  transition: opacity 0.3s;
+  cursor: pointer;
+}
+
+.play-overlay.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.play-box {
+  text-align: center;
+  color: #fff;
+}
+
+.play-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 0 18px rgba(226, 112, 58, 0.7));
+  animation: pulse-icon 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.12); opacity: 0.85; }
+}
+
+.play-box h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+.play-box p {
+  opacity: 0.7;
+  font-size: 0.95rem;
+}
+
+/* ===== YARDIM BUTONU ===== */
+.help-btn {
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  min-width: 42px;
+  align-self: center;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  border: none;
+  transition: 0.18s;
+}
+
+.help-btn:hover {
+  border-color: rgba(226, 112, 58, 0.6);
+  color: var(--mars2);
+}
+
+/* ===== YARDIM OVERLAY ===== */
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 300;
+  backdrop-filter: blur(4px);
+}
+
+.help-overlay[hidden] {
+  display: none;
+}
+
+.help-box {
+  padding: 2rem 2.2rem;
+  border-radius: 1.1rem;
+  max-width: 540px;
+  width: 92%;
+  animation: slideUp 0.22s ease;
+}
+
+.help-box header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.6rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.9rem;
+}
+
+.help-box h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--mars2);
+  letter-spacing: 0.04em;
+}
+
+.help-box header button {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: 0.15s;
+}
+
+.help-box header button:hover {
+  color: var(--txt);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.help-grid {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.help-grid > div {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 7px;
+  transition: 0.12s;
+}
+
+.help-grid > div:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.help-grid span {
+  margin-left: auto;
+  opacity: 0.78;
+  font-size: 0.88rem;
+  color: var(--txt);
+}
+
+.help-grid kbd {
+  font-size: 11px;
+  padding: 3px 8px;
+}

@@ -18,6 +18,15 @@ export function VanillaMarsGame() {
     <div className="mars3d-container">
       <div id="scene"></div>
 
+      {/* ===== OYUN BAŞLATMA OVERLAY ===== */}
+      <div id="playOverlay" className="play-overlay">
+        <div className="play-box">
+          <div className="play-icon">▶</div>
+          <h2>Oynamak için tıkla</h2>
+          <p>Fare kilitlenir · ESC veya Sağ Tık ile serbest bırak</p>
+        </div>
+      </div>
+
       {/* ===== CROSSHAIR ===== */}
       <div className="crosshair" id="crosshair">
         <span></span>
@@ -59,6 +68,9 @@ export function VanillaMarsGame() {
           <b>−63°C</b>
           <small>Sakin · görüş iyi</small>
         </div>
+        <button className="hud-chip glass help-btn" id="helpBtn" title="Kontroller (H)">
+          ?
+        </button>
         <a className="hud-btn" href="/">
           ◱ Panel
         </a>
@@ -155,6 +167,61 @@ export function VanillaMarsGame() {
       <div className="loader" id="loader">
         <div className="planet"></div>
         <p>Mars yüzeyi oluşturuluyor…</p>
+      </div>
+
+      {/* ===== YARDIM OVERLAY ===== */}
+      <div id="helpOverlay" className="help-overlay" hidden>
+        <div className="help-box glass">
+          <header>
+            <h2>Kontroller</h2>
+            <button id="helpClose">✕</button>
+          </header>
+          <div className="help-grid">
+            <div>
+              <kbd>W</kbd>
+              <kbd>A</kbd>
+              <kbd>S</kbd>
+              <kbd>D</kbd>
+              <span>Yürü</span>
+            </div>
+            <div>
+              <kbd>Shift</kbd>+<kbd>WASD</kbd>
+              <span>Koş</span>
+            </div>
+            <div>
+              <kbd>Space</kbd>
+              <span>Zıpla</span>
+            </div>
+            <div>
+              <kbd>E</kbd>
+              <span>Etkileşim / Bina Gir / Görev Yap</span>
+            </div>
+            <div>
+              <kbd>Q</kbd>
+              <span>Binadan Çık</span>
+            </div>
+            <div>
+              <kbd>V</kbd>
+              <span>FPS / TPS Kamera</span>
+            </div>
+            <div>
+              <kbd>F</kbd>
+              <span>Mürettebatı Takip Et</span>
+            </div>
+            <div>
+              <kbd>H</kbd>
+              <span>Bu Yardım Ekranı</span>
+            </div>
+            <div>
+              <kbd>Esc</kbd> / <kbd>Sağ Tık</kbd>
+              <span>Fareyi Serbest Bırak</span>
+            </div>
+            <div>
+              <kbd>Sol Tık</kbd>
+              <span>Fareyi Kilitle</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
