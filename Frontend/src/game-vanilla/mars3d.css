@@ -1,5 +1,5 @@
 /* ===== ARES 3D — Mars yüzey gözetimi HUD ===== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap");
 
 :root {
   --txt: #f6ece6;
@@ -11,8 +11,8 @@
   --violet: #9d7bff;
   --green: #3ddc97;
   --red: #ff5c5c;
-  --glass: rgba(24, 14, 12, .62);
-  --glass-line: rgba(226, 112, 58, .20);
+  --glass: rgba(24, 14, 12, 0.62);
+  --glass-line: rgba(226, 112, 58, 0.2);
 }
 
 .mars3d-container * {
@@ -26,7 +26,7 @@
   width: 100vw;
   overflow: hidden;
   background: #0b0708;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
   color: var(--txt);
   -webkit-font-smoothing: antialiased;
   user-select: none;
@@ -48,10 +48,10 @@
 }
 
 .mars3d-container kbd {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 10px;
-  background: rgba(255, 255, 255, .10);
-  border: 1px solid rgba(255, 255, 255, .18);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 5px;
   padding: 2px 6px;
   margin: 0 1px;
@@ -76,10 +76,10 @@
 
 .crosshair::before,
 .crosshair::after {
-  content: '';
+  content: "";
   position: absolute;
-  background: rgba(255, 255, 255, .85);
-  box-shadow: 0 0 4px rgba(0, 0, 0, .9);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
 }
 
 .crosshair::before {
@@ -108,13 +108,16 @@
   background: transparent;
   border: 1.5px solid var(--mars2);
   transform: translate(-50%, -50%);
-  transition: width .18s, height .18s, background .18s;
+  transition:
+    width 0.18s,
+    height 0.18s,
+    background 0.18s;
 }
 
 .crosshair.active span {
   width: 16px;
   height: 16px;
-  background: rgba(226, 112, 58, .25);
+  background: rgba(226, 112, 58, 0.25);
 }
 
 /* ===== ÜST HUD ===== */
@@ -128,7 +131,7 @@
   gap: 9px;
   align-items: stretch;
   padding: 12px 14px;
-  background: linear-gradient(180deg, rgba(10, 6, 5, .75), transparent);
+  background: linear-gradient(180deg, rgba(10, 6, 5, 0.75), transparent);
 }
 
 .spacer {
@@ -147,11 +150,11 @@
 .hud-chip b {
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: .3px;
+  letter-spacing: 0.3px;
 }
 
 .hud-chip b span {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   color: var(--mars2);
 }
 
@@ -159,7 +162,7 @@
   font-size: 10px;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: .8px;
+  letter-spacing: 0.8px;
 }
 
 .hud-chip small i {
@@ -167,7 +170,7 @@
   height: 3px;
   border-radius: 99px;
   background: var(--green);
-  transition: width .5s;
+  transition: width 0.5s;
 }
 
 .hud-chip.weather b {
@@ -183,7 +186,7 @@
   text-decoration: none;
   font-size: 12.5px;
   font-weight: 600;
-  box-shadow: 0 5px 16px rgba(226, 112, 58, .3);
+  box-shadow: 0 5px 16px rgba(226, 112, 58, 0.3);
 }
 
 .hud-btn:hover {
@@ -205,26 +208,26 @@
   align-items: center;
   justify-content: space-between;
   padding: 11px 13px;
-  border-bottom: 1px solid rgba(255, 255, 255, .07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .roster h3 {
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: .3px;
+  letter-spacing: 0.3px;
 }
 
 .roster h3 span {
   color: var(--muted);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 .mini-btn {
   width: 22px;
   height: 22px;
   border-radius: 7px;
-  border: 1px solid rgba(255, 255, 255, .12);
-  background: rgba(255, 255, 255, .05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--muted);
   cursor: pointer;
   font-size: 12px;
@@ -233,7 +236,7 @@
 
 .mini-btn:hover {
   color: var(--txt);
-  background: rgba(255, 255, 255, .1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .roster-list {
@@ -248,7 +251,7 @@
 }
 
 .roster-list::-webkit-scrollbar-thumb {
-  background: rgba(226, 112, 58, .35);
+  background: rgba(226, 112, 58, 0.35);
   border-radius: 99px;
 }
 
@@ -260,16 +263,16 @@
   border-radius: 9px;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: .13s;
+  transition: 0.13s;
 }
 
 .pitem:hover {
-  background: rgba(255, 255, 255, .06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .pitem.sel {
-  background: rgba(226, 112, 58, .16);
-  border-color: rgba(226, 112, 58, .4);
+  background: rgba(226, 112, 58, 0.16);
+  border-color: rgba(226, 112, 58, 0.4);
 }
 
 .pitem .av {
@@ -355,15 +358,15 @@
   bottom: 14px;
   font-size: 9px;
   letter-spacing: 2px;
-  color: rgba(255, 220, 200, .75);
-  font-family: 'JetBrains Mono', monospace;
+  color: rgba(255, 220, 200, 0.75);
+  font-family: "JetBrains Mono", monospace;
   text-shadow: 0 1px 3px #000;
 }
 
 .inspect {
   width: 246px;
   padding: 12px 13px;
-  animation: slideUp .22s ease;
+  animation: slideUp 0.22s ease;
 }
 
 @keyframes slideUp {
@@ -412,14 +415,14 @@
 
 .ins-row b {
   color: var(--txt);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-weight: 500;
 }
 
 .ins-bar {
   height: 4px;
   border-radius: 99px;
-  background: rgba(255, 255, 255, .09);
+  background: rgba(255, 255, 255, 0.09);
   overflow: hidden;
   margin-top: 3px;
 }
@@ -447,15 +450,15 @@
   font-size: 11px;
   font-weight: 600;
   text-align: center;
-  background: rgba(255, 255, 255, .06);
-  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--txt);
-  transition: .15s;
+  transition: 0.15s;
 }
 
 .act:hover {
-  background: rgba(226, 112, 58, .2);
-  border-color: rgba(226, 112, 58, .45);
+  background: rgba(226, 112, 58, 0.2);
+  border-color: rgba(226, 112, 58, 0.45);
 }
 
 .act.on {
@@ -493,22 +496,22 @@
   padding: 9px 14px;
   border-radius: 11px;
   font-size: 11.5px;
-  background: rgba(24, 14, 12, .85);
+  background: rgba(24, 14, 12, 0.85);
   border: 1px solid var(--glass-line);
   backdrop-filter: blur(12px);
-  animation: toastIn .3s ease;
+  animation: toastIn 0.3s ease;
 }
 
 .toast.ok {
-  border-color: rgba(61, 220, 151, .4);
+  border-color: rgba(61, 220, 151, 0.4);
 }
 
 .toast.warn {
-  border-color: rgba(244, 197, 66, .4);
+  border-color: rgba(244, 197, 66, 0.4);
 }
 
 .toast.bad {
-  border-color: rgba(255, 92, 92, .4);
+  border-color: rgba(255, 92, 92, 0.4);
 }
 
 .toast b {
@@ -551,9 +554,9 @@
   font-size: 11.5px;
   padding: 7px 9px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, .06);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--txt);
-  border: 1px solid rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: pointer;
   max-width: 170px;
 }
@@ -592,8 +595,8 @@
   height: 112px;
   border-radius: 50%;
   z-index: 12;
-  background: rgba(255, 255, 255, .05);
-  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(8px);
   touch-action: none;
 }
@@ -615,8 +618,8 @@
   height: 46px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(226, 112, 58, .5);
-  border: 1px solid rgba(255, 255, 255, .25);
+  background: rgba(226, 112, 58, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 .tbtn {
@@ -632,11 +635,11 @@
   border: none;
   font-size: 16px;
   font-weight: 700;
-  box-shadow: 0 6px 18px rgba(226, 112, 58, .4);
+  box-shadow: 0 6px 18px rgba(226, 112, 58, 0.4);
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width:900px) {
+@media (max-width: 900px) {
   .roster {
     width: 190px;
   }
@@ -670,7 +673,7 @@
   }
 }
 
-@media (max-width:600px) {
+@media (max-width: 600px) {
   .roster {
     display: none;
   }
@@ -712,7 +715,7 @@
   place-items: center;
   gap: 0;
   background: radial-gradient(600px 400px at 50% 40%, #2a140e, #0b0708);
-  transition: opacity .6s;
+  transition: opacity 0.6s;
   align-content: center;
 }
 
@@ -734,7 +737,9 @@
   height: 74px;
   border-radius: 50%;
   background: radial-gradient(circle at 32% 30%, #ff9a5c, #c9541f 55%, #6b2410);
-  box-shadow: 0 0 46px rgba(226, 112, 58, .45), inset -10px -10px 22px rgba(0, 0, 0, .55);
+  box-shadow:
+    0 0 46px rgba(226, 112, 58, 0.45),
+    inset -10px -10px 22px rgba(0, 0, 0, 0.55);
   animation: spin 3.4s linear infinite;
 }
 
@@ -745,7 +750,7 @@
 }
 
 /* dokunmatik: cam katman kaldırılır (sahneyi bulanıklaştırıyor), HUD sadeleşir */
-@media (pointer:coarse) {
+@media (pointer: coarse) {
   .touch {
     display: block;
   }
@@ -754,7 +759,7 @@
   }
   .glass {
     backdrop-filter: none;
-    background: rgba(20, 11, 9, .86);
+    background: rgba(20, 11, 9, 0.86);
   }
   .cmdbar {
     left: 10px;
@@ -811,30 +816,132 @@
     cursor: pointer;
     color: var(--txt);
     font-weight: 800;
-    letter-spacing: .08em;
+    letter-spacing: 0.08em;
     min-width: 64px;
-    transition: .18s;
+    transition: 0.18s;
     user-select: none;
   }
   .cam-chip:hover {
-    border-color: rgba(226, 112, 58, .6);
+    border-color: rgba(226, 112, 58, 0.6);
   }
   .cam-chip.on {
-    background: linear-gradient(180deg, rgba(226, 112, 58, .32), rgba(226, 112, 58, .16));
-    border-color: rgba(226, 112, 58, .75);
+    background: linear-gradient(180deg, rgba(226, 112, 58, 0.32), rgba(226, 112, 58, 0.16));
+    border-color: rgba(226, 112, 58, 0.75);
     color: #ffd9c4;
   }
   /* ===== mürettebat alt bilgi ===== */
   .roster-sub {
     font-size: 10.5px;
-    letter-spacing: .04em;
+    letter-spacing: 0.04em;
     color: var(--muted);
     padding: 0 9px 7px;
-    border-bottom: 1px solid rgba(255, 255, 255, .06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+  /* ===== İÇ MEKÂN GÖREV PANELİ ===== */
+  .taskpanel {
+    position: absolute;
+    left: 50%;
+    top: 74px;
+    transform: translateX(-50%);
+    z-index: 8;
+    width: min(420px, calc(100vw - 32px));
+    padding: 12px 14px 10px;
+    animation: tpIn 0.18s ease-out;
+  }
+  @keyframes tpIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -8px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+  .taskpanel header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .taskpanel header b {
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: #ffd9c4;
+  }
+  .taskpanel .tp-sub {
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-bottom: 9px;
+  }
+  .taskpanel .tp-hintbar {
+    position: relative;
+    height: 26px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    margin-bottom: 9px;
+  }
+  .taskpanel .tp-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0;
+    background: linear-gradient(90deg, rgba(226, 112, 58, 0.85), rgba(244, 197, 66, 0.7));
+    transition: width 0.08s linear;
+  }
+  .taskpanel .tp-fill.active {
+    box-shadow: 0 0 14px rgba(255, 160, 90, 0.55);
+  }
+  .taskpanel .tp-text {
+    position: relative;
+    font-size: 11px;
+    padding: 0 11px;
+    color: #fff2e6;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .taskpanel .tp-list {
+    list-style: none;
+    display: grid;
+    gap: 4px;
+    max-height: 168px;
+    overflow-y: auto;
+  }
+  .taskpanel .tp-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .taskpanel .tp-list span {
+    color: var(--muted);
+  }
+  .taskpanel .tp-list b {
+    font-weight: 600;
+    color: #eaf6ff;
+  }
+  .taskpanel .tp-list b.empty {
+    color: var(--blue);
+  }
+  .taskpanel .tp-list b.growing {
+    color: var(--gold);
+  }
+  .taskpanel .tp-list b.ripe {
+    color: var(--green);
+  }
+
   /* ===== mobil kamera butonu ===== */
   .tbtn.small {
     width: 46px;
@@ -842,13 +949,12 @@
     font-size: 17px;
     right: 150px;
     bottom: 26px;
-    opacity: .86;
+    opacity: 0.86;
   }
-  @media (max-width:560px) {
+  @media (max-width: 560px) {
     .tbtn.small {
       right: 132px;
       bottom: 20px;
     }
   }
 }
-

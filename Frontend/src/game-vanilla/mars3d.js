@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { createColony, BUILD_DEFS, COLOR, rnd, irnd, clamp, fmt } from "./colony-data.js";
+import { buildInterior } from "./interiors.js";
 
 export function initMars3D() {
   const $ = (s, r = document) => r.querySelector(s);
@@ -166,7 +167,8 @@ export function initMars3D() {
       roughness: 1,
       flatShading: true,
     });
-    for (let i = 0; i < 200; i++) { // Kaya sayısı azaltıldı
+    for (let i = 0; i < 200; i++) {
+      // Kaya sayısı azaltıldı
       const rx = rnd(-WORLD / 2 + 6, WORLD / 2 - 6);
       const rz = rnd(-WORLD / 2 + 6, WORLD / 2 - 6);
       if (Math.hypot(rx - 2, rz - 40) < 14) continue;
@@ -337,109 +339,6 @@ export function initMars3D() {
     return m;
   }
 
-  function buildInterior() {
-    const g = new THREE.Group();
-    const shell = new THREE.Mesh(
-      new THREE.SphereGeometry(4.05, 22, 14, 0, Math.PI * 2, 0, Math.PI / 2),
-      MAT.wall,
-    );
-    shell.material.side = THREE.BackSide;
-    shell.receiveShadow = true;
-    g.add(shell);
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(4.0, 26), MAT.deck);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    g.add(floor);
-    for (let i = -3; i <= 3; i++) {
-      g.add(box(0.12, 0.02, 7.6, MAT.metalD, i * 1.1, 0.02, 0));
-    }
-    const ringFloor = new THREE.Mesh(new THREE.RingGeometry(3.72, 3.95, 26), MAT.orange);
-    ringFloor.rotation.x = -Math.PI / 2;
-    ringFloor.position.y = 0.03;
-    g.add(ringFloor);
-
-    g.add(box(1.6, 0.12, 0.5, MAT.lamp, 0, 3.55, -1.4));
-    g.add(box(1.6, 0.12, 0.5, MAT.lamp, 0, 3.55, 1.4));
-    const amb = new THREE.PointLight(0xffd9a8, 26, 9, 2);
-    amb.position.set(0, 3.0, 0);
-    g.add(amb);
-    g.add(box(3.4, 0.1, 0.1, MAT.metal, 0, 3.62, 0));
-
-    const bedSlots = [];
-    for (let s = 0; s < 2; s++) {
-      for (let i = 0; i < 2; i++) {
-        const x = (i ? 1 : -1) * 3.0;
-        const z = -2.3 + i * 2.4 + s * 0.1;
-        const yaw = x > 0 ? -Math.PI / 2 : Math.PI / 2;
-        const bed = new THREE.Group();
-        bed.position.set(x, 0, z);
-        bed.rotation.y = yaw;
-        bed.add(box(0.98, 0.4, 2.1, MAT.metalD, 0, 0.2, 0));
-        bed.add(box(0.92, 0.18, 2.0, MAT.cloth, 0, 0.48, 0));
-        bed.add(box(0.82, 0.16, 0.44, MAT.pillow, 0, 0.54, -0.74));
-        bed.add(box(0.94, 0.72, 0.1, MAT.metalD, 0, 0.5, -1.02));
-        bed.add(box(0.08, 1.5, 0.08, MAT.metal, 0.46, 0.85, -0.98));
-        bed.add(box(0.14, 0.18, 0.14, MAT.lamp, 0.46, 1.62, -0.98));
-        g.add(bed);
-        bedSlots.push({ p: new THREE.Vector3(x + (x > 0 ? -0.2 : 0.2), 0.62, z + 0.06), yaw });
-      }
-    }
-    g.add(box(0.9, 0.1, 4.6, MAT.metalD, 3.0, 1.85, 0.1));
-    g.add(box(0.9, 0.1, 4.6, MAT.metalD, -3.0, 1.85, 0.1));
-
-    const workSlots = [];
-    for (let i = 0; i < 2; i++) {
-      const x = -1.5 + i * 3.0;
-      const desk = new THREE.Group();
-      desk.position.set(x, 0, 2.55);
-      desk.add(box(2.2, 0.12, 0.8, MAT.white, 0, 0.95, 0));
-      desk.add(box(0.1, 0.95, 0.1, MAT.metal, -1.0, 0.47, 0));
-      desk.add(box(0.1, 0.95, 0.1, MAT.metal, 1.0, 0.47, 0));
-      const s1 = box(0.9, 0.55, 0.06, MAT.screen, -0.5, 1.32, -0.28);
-      s1.rotation.x = 0.18;
-      desk.add(s1);
-      const s2 = box(0.9, 0.55, 0.06, MAT.screen, 0.5, 1.32, -0.28);
-      s2.rotation.x = 0.18;
-      desk.add(s2);
-      desk.add(box(0.5, 0.05, 0.2, MAT.metalD, 0, 1.03, 0.1));
-      const chair = new THREE.Group();
-      chair.position.set(0, 0, 0.85);
-      chair.add(cyl(0.34, 0.36, 0.12, MAT.dark, 10).translateY(0.5));
-      chair.add(box(0.5, 0.55, 0.1, MAT.dark, 0, 0.85, 0.28));
-      chair.add(cyl(0.08, 0.1, 0.5, MAT.metal, 8).translateY(0.25));
-      desk.add(chair);
-      g.add(desk);
-      workSlots.push(new THREE.Vector3(x, 0, 3.4));
-    }
-
-    const doorFrame = new THREE.Group();
-    doorFrame.position.set(0, 0, -3.6);
-    doorFrame.add(box(1.9, 2.3, 0.16, MAT.metalD, 0, 1.15, 0));
-    doorFrame.add(box(1.55, 2.0, 0.1, MAT.orange, 0, 1.05, 0.1));
-    doorFrame.add(box(0.3, 0.06, 0.06, MAT.lamp, 0, 2.2, 0.14));
-    g.add(doorFrame);
-    g.add(
-      cyl(0.14, 0.14, 6, MAT.metal, 8)
-        .rotateZ(Math.PI / 2)
-        .translateY(3.1),
-    );
-    g.add(cyl(0.32, 0.26, 0.4, MAT.white, 8).translateY(0.2).translateX(-2.2).translateZ(2.6));
-    const pl = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.8, 6), MAT.green);
-    pl.position.set(-2.2, 0.75, 2.6);
-    g.add(pl);
-    g.add(cyl(0.32, 0.26, 0.4, MAT.white, 8).translateY(0.2).translateX(2.2).translateZ(2.6));
-    const pl2 = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.8, 6), MAT.green);
-    pl2.position.set(2.2, 0.75, 2.6);
-    g.add(pl2);
-
-    g.slots = { bed: bedSlots, work: workSlots, door: new THREE.Vector3(0, 0, -3.9) };
-    g.position.y = 0.42;
-    const skirt = cyl(4.06, 4.06, 0.6, MAT.deck, 26);
-    skirt.position.y = -0.3;
-    g.add(skirt);
-    return g;
-  }
-
   const BUILDERS = {
     habitat() {
       const g = new THREE.Group();
@@ -484,10 +383,9 @@ export function initMars3D() {
       tunnel.add(eSign);
       g.add(tunnel);
 
-      const interior = buildInterior();
-      g.add(interior);
-      g.interior = interior;
-      g.isHabitat = true;
+      const interior = buildInterior("habitat");
+      g.add(interior.group);
+      g.interiorData = interior;
       return g;
     },
     solar() {
@@ -544,35 +442,79 @@ export function initMars3D() {
       return g;
     },
     farm() {
+      // Büyük hidroponik sera: geniş platform, yüksek kubbe, dış ekim alanı
       const g = new THREE.Group();
-      g.add(box(10, 0.5, 7, MAT.metalD, 0, 0.25, 0));
+      g.add(box(21, 0.6, 15, MAT.metalD, 0, 0.3, 0));
+      g.add(box(21.4, 0.25, 15.4, MAT.orange, 0, 0.68, 0));
+
+      const domeMat = new THREE.MeshStandardMaterial({
+        color: 0xa8e6c0,
+        roughness: 0.1,
+        metalness: 0.1,
+        transparent: true,
+        opacity: 0.3,
+        side: THREE.DoubleSide,
+      });
       const dome = new THREE.Mesh(
-        new THREE.SphereGeometry(5, 22, 12, 0, Math.PI * 2, 0, Math.PI / 2),
-        new THREE.MeshStandardMaterial({
-          color: 0xa8e6c0,
-          roughness: 0.1,
-          metalness: 0.1,
-          transparent: true,
-          opacity: 0.34,
-          side: THREE.DoubleSide,
-        }),
+        new THREE.SphereGeometry(11, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+        domeMat,
       );
-      dome.scale.set(1, 0.62, 0.75);
-      dome.position.y = 0.5;
+      dome.scale.set(1, 0.66, 0.7);
+      dome.position.y = 0.75;
       g.add(dome);
-      for (let r = 0; r < 3; r++)
-        for (let c = 0; c < 4; c++) {
-          g.add(box(1.7, 0.5, 1.5, MAT.green, -3.2 + c * 2.15, 0.85, -1.7 + r * 1.75));
+
+      // kubbe kemerleri
+      for (let i = -2; i <= 2; i++) {
+        const rib = new THREE.Mesh(
+          new THREE.TorusGeometry(11 * (i === 0 ? 0.18 : 1), 0.16, 6, 20, Math.PI),
+          MAT.metal,
+        );
+        rib.scale.set(1, 0.66, 0.7);
+        rib.rotation.y = Math.PI / 2;
+        rib.position.set(i * 4.4, 0.75, 0);
+        g.add(rib);
+      }
+      const spine = new THREE.Mesh(new THREE.TorusGeometry(11, 0.22, 6, 24, Math.PI), MAT.metal);
+      spine.scale.set(1, 0.66, 0.7);
+      spine.position.y = 0.75;
+      g.add(spine);
+
+      // dış ekim alanı (çatı üstü küvetler)
+      for (let r = 0; r < 4; r++)
+        for (let c = 0; c < 7; c++) {
+          const x = -7.2 + c * 2.4,
+            z = -5 + r * 3.1;
+          g.add(box(1.9, 0.5, 1.6, MAT.metalD, x, 1.0, z));
           for (let i = 0; i < 3; i++) {
-            const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.8, 5), MAT.green);
-            leaf.position.set(-3.7 + c * 2.15 + i * 0.45, 1.45, -1.7 + r * 1.75);
+            const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.9, 5), MAT.green);
+            leaf.position.set(x - 0.55 + i * 0.55, 1.75, z);
             leaf.castShadow = true;
             g.add(leaf);
           }
         }
-      const tank = cyl(0.4, 0.4, 1.6, MAT.white, 8);
-      tank.position.set(5.6, 1.3, 0);
+
+      // giriş tüneli + kapı
+      g.add(
+        cyl(0.3, 0.3, 2.6, MAT.metal, 10)
+          .rotateX(Math.PI / 2)
+          .translateY(1.6)
+          .translateZ(-8.6),
+      );
+      const tunnel = new THREE.Group();
+      tunnel.position.set(0, 0, -8.6);
+      tunnel.add(box(2.2, 2.6, 2.6, MAT.metalD, 0, 1.3, 0));
+      tunnel.add(box(2.4, 0.35, 2.7, MAT.orange, 0, 2.75, 0));
+      tunnel.add(box(1.7, 2.2, 0.14, MAT.glass, 0, 1.15, -1.25));
+      tunnel.add(box(1.0, 0.24, 0.08, MAT.lamp, 0, 2.35, -1.2));
+      g.add(tunnel);
+
+      // su tankı
+      const tank = cyl(0.6, 0.6, 2.2, MAT.white, 10);
+      tank.position.set(10.2, 1.6, 5.6);
       g.add(tank);
+      const tankTop = cyl(0.66, 0.66, 0.25, MAT.orange, 10);
+      tankTop.position.set(10.2, 2.75, 5.6);
+      g.add(tankTop);
       return g;
     },
     rocket() {
@@ -599,7 +541,18 @@ export function initMars3D() {
   };
 
   const buildMeshes = [];
+  const interiors = [];
   const habitats = [];
+
+  const ENTRY_TEXT = {
+    habitat: "Uyuyan ve çalışan mürettebat",
+    farm: "Çapala, sula, hasat et",
+    mine: "Cevher kaz, vagonu yükle",
+    lab: "Numune al, analiz et",
+    solar: "İnvertör ve batarya bakımı",
+    rocket: "Fırlatma sırasını hazırla",
+    default: "İçeri gir",
+  };
   colony.builds.forEach((b) => {
     const g = BUILDERS[b.t]();
     g.position.set(b.x, terrainHeight(b.x, b.z), b.z);
@@ -623,24 +576,35 @@ export function initMars3D() {
     glow.position.set(b.x, terrainHeight(b.x, b.z) + 0.06, b.z);
     scene.add(glow);
 
-    if (g.isHabitat) {
+    const interior = g.interiorData || buildInterior(b.t);
+    if (interior) {
+      g.add(interior.group);
+      interior.group.visible = false;
       const toWorld = (v) => g.localToWorld(v.clone());
-      const s = g.interior.slots;
-      habitats.push({
+      const s = interior.slots;
+      const entry = {
         mesh: g,
         b,
-        floorY: g.position.y + g.interior.position.y,
+        type: b.t,
+        interior,
+        floorY: g.position.y + interior.floorY,
+        radius: interior.radius,
+        door: toWorld(interior.doorLocal),
+        innerDoor: toWorld(s.door),
         slots: {
-          bed: s.bed.map((sl) => ({
-            x: toWorld(sl.p).x,
-            y: toWorld(sl.p).y,
-            z: toWorld(sl.p).z,
-            yaw: sl.yaw,
-          })),
-          work: s.work.map(toWorld),
+          bed: (s.bed || []).map((sl) => {
+            const w = toWorld(sl.p);
+            return { x: w.x, y: w.y, z: w.z, yaw: sl.yaw };
+          }),
+          work: (s.work || []).map(toWorld),
           door: toWorld(s.door),
         },
-      });
+        stations: interior.stations || [],
+        planters: interior.planters || [],
+      };
+      entry.hint = ENTRY_TEXT[b.t] || ENTRY_TEXT.default;
+      interiors.push(entry);
+      if (interior.slots.bed.length) habitats.push(entry);
     }
   });
 
@@ -803,6 +767,7 @@ export function initMars3D() {
     work: "İçeride çalışıyor",
     gobed: "Yatağa gidiyor",
     gowork: "Çalışma istasyonuna gidiyor",
+    job: "Görev istasyonunda çalışıyor",
     leave: "Dışarı çıkıyor",
   };
 
@@ -817,6 +782,24 @@ export function initMars3D() {
     );
     a.state = "patrol";
     a.statusText = STATE_TEXT.patrol;
+  }
+
+  /** Bir görev istasyonuna yerleşip çalışmaya başlar. */
+  function goToJob(a, entry) {
+    if (!entry || !entry.stations.length) return;
+    const st = entry.stations[astrons.indexOf(a) % entry.stations.length];
+    const w = entry.mesh.localToWorld(st.position.clone());
+    a.state = "job";
+    a.statusText = STATE_TEXT.job;
+    a.inside = entry;
+    a.floorY = entry.floorY;
+    a.root.position.set(w.x, entry.floorY, w.z);
+    a.jobYaw = Math.atan2(entry.b.x - w.x, entry.b.z - w.z);
+    a.heading = a.jobYaw;
+    a.label.visible = false;
+    poseStand(a);
+    a.arms[0].rotation.x = -1.15;
+    a.arms[1].rotation.x = -1.15;
   }
 
   const astrons = [];
@@ -849,9 +832,15 @@ export function initMars3D() {
 
   astrons.forEach((a, i) => {
     a.habitat = habitats[i % habitats.length];
-    if (!a.habitat) return;
-    if (i < 6) goToBed(a);
-    else if (i < 12) goToWork(a);
+    if (i < 6) {
+      goToBed(a);
+    } else if (i < 12) {
+      goToWork(a);
+    } else {
+      // kalan mürettebat diğer binaların görev istasyonlarında çalışır
+      const jobs = interiors.filter((e) => e.type !== "habitat" && e.stations.length);
+      if (jobs.length) goToJob(a, jobs[i % jobs.length]);
+    }
   });
 
   function goToBed(a, h = a.habitat) {
@@ -879,8 +868,9 @@ export function initMars3D() {
   }
   function sendOutside(a) {
     if (!a.inside) return;
-    const h = a.inside,
-      door = h.slots.door;
+    const h = a.inside;
+    // her bina için dış kapı konumu kullanılır
+    const door = h.slots.door && h.type === "habitat" ? h.slots.door : h.door;
     a.inside = null;
     a.state = "leave";
     a.statusText = STATE_TEXT.leave;
@@ -908,6 +898,8 @@ export function initMars3D() {
         p.wx = a.root.position.x;
         p.wz = a.root.position.z;
         p.status = "ok";
+        // oyuncu o binada değilse içerideki mürettebat görünmez
+        a.root.visible = player.inside === a.inside;
         a.phase += dt * 1.1;
         if (a.state === "sleep") {
           const br = Math.sin(a.phase * 0.9) * 0.5 + 0.5;
@@ -927,11 +919,24 @@ export function initMars3D() {
           a.root.rotation.y = Math.PI + Math.sin(a.phase * 0.8) * 0.1;
           a.torso.scale.set(1, 1 + Math.sin(a.phase * 2) * 0.012, 1);
           a.root.position.y = a.seatY;
+        } else if (a.state === "job") {
+          // istasyonda çalışma: kollar hareket eder, gövde hafif eğilir
+          const t = a.phase * 5.5;
+          a.arms[0].rotation.x = -1.15 + Math.sin(t) * 0.26;
+          a.arms[1].rotation.x = -1.15 + Math.sin(t + 1.6) * 0.26;
+          a.arms[0].rotation.z = 0.12;
+          a.arms[1].rotation.z = -0.12;
+          a.root.rotation.y = a.jobYaw + Math.sin(a.phase * 0.7) * 0.12;
+          a.torso.scale.set(1, 1 + Math.sin(a.phase * 2.4) * 0.014, 1);
+          a.root.position.y = a.floorY;
+          a.legs[0].rotation.x = -0.13;
+          a.legs[1].rotation.x = 0.13;
         }
         a.label.visible = false;
         if (selected === a) renderInspect();
         return;
       }
+      a.root.visible = true;
       a.label.visible = true;
       a.torso.scale.set(1, 1, 1);
       a.arms[0].rotation.z = 0;
@@ -1106,30 +1111,32 @@ export function initMars3D() {
     return player.inside ? player.inside.floorY : terrainHeight(x, z);
   }
 
-  function enterHabitat(h) {
+  function enterInterior(h) {
     if (!h || player.inside) return;
     player.inside = h;
-    const d = h.slots.door;
+    const d = h.door;
     const toC = new THREE.Vector3(h.b.x - d.x, 0, h.b.z - d.z).normalize();
-    const start = new THREE.Vector3(d.x, 0, d.z).addScaledVector(toC, 2.6);
+    const start = new THREE.Vector3(d.x, 0, d.z).addScaledVector(toC, 2.2);
     player.pos.set(start.x, h.floorY, start.z);
     player.vy = 0;
     player.yaw = Math.atan2(-toC.x, -toC.z);
     player.pitch = -0.05;
     h.mesh.children.forEach((c) => {
-      if (c !== h.mesh.interior) c.visible = false;
+      if (c !== h.interior.group) c.visible = false;
     });
-    h.mesh.interior.visible = true;
-    toast(
-      `<b>${h.b.n}</b> içeri girdin · basınçlı yaşam alanı · <kbd>Q</kbd> ile dışarı çık`,
-      "ok",
-    );
+    h.interior.group.visible = true;
+    taskProgress = 0;
+    taskTarget = null;
+    taskListKey = "";
+    lastTaskListKey = "";
+    showTaskPanel(h);
+    toast(`<b>${h.b.n}</b> içeri girdin · ${h.hint} · <kbd>Q</kbd> ile dışarı çık`, "ok");
   }
 
-  function exitHabitat() {
+  function exitInterior() {
     const h = player.inside;
     if (!h) return;
-    const d = h.slots.door;
+    const d = h.door;
     const out = new THREE.Vector3(d.x, 0, d.z);
     const away = new THREE.Vector3(d.x - h.b.x, 0, d.z - h.b.z).normalize();
     out.addScaledVector(away, 1.6);
@@ -1140,6 +1147,12 @@ export function initMars3D() {
     h.mesh.children.forEach((c) => {
       c.visible = true;
     });
+    h.interior.group.visible = false;
+    taskProgress = 0;
+    taskTarget = null;
+    taskListKey = "";
+    lastTaskListKey = "";
+    hideTaskPanel();
     toast(`<b>${h.b.n}</b> dışına çıktın — EYLEM: basınç kaybı riski`, "warn");
   }
 
@@ -1201,13 +1214,17 @@ export function initMars3D() {
         player.onGround = false;
       }
     }
-    if (e.code === "KeyE") interact();
+    if (e.code === "KeyE") {
+      interact();
+      taskHolding = true;
+    }
     if (e.code === "KeyF") toggleFollow();
     if (e.code === "KeyV") toggleCam();
-    if (e.code === "KeyQ") exitHabitat();
+    if (e.code === "KeyQ") exitInterior();
   };
   const onKU = (e) => {
     keys[e.code] = false;
+    if (e.code === "KeyE") taskHolding = false;
   };
   addEvt(window, "keydown", onKD);
   addEvt(window, "keyup", onKU);
@@ -1253,12 +1270,21 @@ export function initMars3D() {
   bindStick("#stickLook", touch.look);
 
   const btnUse = $("#tbtnUse");
-  if (btnUse)
+  if (btnUse) {
     addEvt(btnUse, "pointerdown", (e) => {
       e.preventDefault();
       e.stopPropagation();
       interact();
+      taskHolding = true;
     });
+    const release = (e) => {
+      e.preventDefault();
+      taskHolding = false;
+    };
+    addEvt(btnUse, "pointerup", release);
+    addEvt(btnUse, "pointercancel", release);
+    addEvt(btnUse, "pointerleave", release);
+  }
 
   function updatePlayer(dt) {
     const fwd =
@@ -1296,9 +1322,10 @@ export function initMars3D() {
       const dx = player.pos.x - h.b.x,
         dz = player.pos.z - h.b.z;
       const len = Math.hypot(dx, dz) || 1;
-      if (len > 3.4) {
-        player.pos.x = h.b.x + (dx / len) * 3.4;
-        player.pos.z = h.b.z + (dz / len) * 3.4;
+      const r = h.radius;
+      if (len > r) {
+        player.pos.x = h.b.x + (dx / len) * r;
+        player.pos.z = h.b.z + (dz / len) * r;
       }
     }
 
@@ -1390,6 +1417,7 @@ export function initMars3D() {
       const ud = h.object.userData;
       if (!ud) continue;
       if (ud.kind === "terrain" || ud.kind === "rock") return null;
+      if (ud.kind === "interior" || ud.kind === "task") return null;
       if (ud.kind === "crew" || ud.kind === "build") return ud;
     }
     return null;
@@ -1397,12 +1425,13 @@ export function initMars3D() {
 
   function interact() {
     if (player.inside) {
-      exitHabitat();
+      // içeride: görev nişanı yoksa çıkış
+      if (!taskTarget) exitInterior();
       return;
     }
     const h = nearDoor();
     if (h) {
-      enterHabitat(h);
+      enterInterior(h);
       return;
     }
     if (!hovered) return;
@@ -1412,11 +1441,82 @@ export function initMars3D() {
     } else showInspectBuild(hovered.ref);
   }
 
+  /** Sera bitkileri oyuncu içeride olmasa da büyür. */
+  function updatePlanters(dt) {
+    interiors.forEach((h) => {
+      if (!h.planters.length) return;
+      h.planters.forEach((p) => {
+        if (p.stage !== "growing") return;
+        p.water = Math.max(0, p.water - dt * 0.012);
+        if (p.weeds.visible || p.water <= 0) return;
+        p.growth = Math.min(1, p.growth + dt * 0.012 * (0.4 + p.water));
+        const s = 0.35 + p.growth * 0.75;
+        p.plant.scale.set(s, s, s);
+        if (p.growth >= 1) {
+          p.stage = "ripe";
+          p.fruit.scale.setScalar(1.35);
+          renderTaskList();
+        }
+      });
+    });
+  }
+
+  /** İçeride fan animasyonu + görev ilerlemesi. */
+  function updateTasks(dt) {
+    const h = player.inside;
+
+    if (h && h.interior.fans) {
+      h.interior.fans.forEach((f, i) => {
+        f.rotation.x += dt * (i ? -4 : 4);
+      });
+    }
+
+    if (!taskTarget) {
+      if (taskProgress > 0) {
+        taskProgress = Math.max(0, taskProgress - dt * 2.2);
+        renderTaskBar();
+      }
+      return;
+    }
+
+    if (taskHolding) {
+      taskProgress += dt / (taskTarget.dur || 2.5);
+      if (taskProgress >= 1) {
+        taskProgress = 0;
+        completeTask(taskTarget);
+      }
+    } else {
+      taskProgress = Math.max(0, taskProgress - dt * 1.6);
+    }
+    renderTaskBar();
+    // liste yalnızca durum değiştiğinde yenilenir
+    taskListKey = h.planters.length
+      ? h.planters.map((p) => p.stage + Math.round(p.growth * 10)).join()
+      : `${h.b.hp.toFixed(0)}-${h.b.lvl}-${astrons.filter((a) => a.inside === h).length}`;
+    if (taskListKey !== lastTaskListKey) {
+      lastTaskListKey = taskListKey;
+      renderTaskList();
+    }
+  }
+
+  function renderTaskBar() {
+    const fill = $("#tpFill");
+    const text = $("#tpText");
+    if (!fill || !text) return;
+    fill.style.width = Math.round(taskProgress * 100) + "%";
+    fill.classList.toggle("active", taskProgress > 0);
+    text.textContent = taskTarget
+      ? taskProgress > 0
+        ? "Çalışıyor..."
+        : taskTarget.hint || "E basılı tut"
+      : "Bir görev istasyonuna nişan al";
+  }
+
   function nearDoor() {
     let best = null,
-      bd = 3.4;
-    for (const h of habitats) {
-      const d = Math.hypot(h.slots.door.x - player.pos.x, h.slots.door.z - player.pos.z);
+      bd = 4.2;
+    for (const h of interiors) {
+      const d = Math.hypot(h.door.x - player.pos.x, h.door.z - player.pos.z);
       if (d < bd) {
         bd = d;
         best = h;
@@ -1425,26 +1525,230 @@ export function initMars3D() {
     return best;
   }
 
+  /* ---------------- GÖREV SİSTEMİ ---------------- */
+  let taskTarget = null;
+  let taskProgress = 0;
+  let taskHolding = false;
+  let taskListKey = "";
+  let lastTaskListKey = "";
+
+  const PLOT_LABEL = {
+    empty: "Ekim yapılabilir",
+    growing: "Büyüyor",
+    ripe: "Hasat edilebilir",
+  };
+
+  function plotLabelFor(p) {
+    if (!p) return "";
+    if (p.stage === "empty") return PLOT_LABEL.empty;
+    if (p.stage === "ripe") return PLOT_LABEL.ripe;
+    return `${PLOT_LABEL.growing} · %${Math.round(p.growth * 100)}`;
+  }
+
+  function gain(resKey, amount) {
+    const r = colony.res[resKey];
+    if (!r) return;
+    r.v = clamp(r.v + amount, 0, r.cap);
+  }
+
+  function showTaskPanel(h) {
+    const el = $("#taskpanel");
+    if (!el) return;
+    el.hidden = false;
+    el.innerHTML = `
+      <header>
+        <b id="tpName">${h.b.n}</b>
+        <button class="mini-btn" id="tpClose">✕</button>
+      </header>
+      <div class="tp-sub">${h.hint} · <kbd>Q</kbd> ile çık</div>
+      <div class="tp-hintbar">
+        <div class="tp-fill" id="tpFill"></div>
+        <span class="tp-text" id="tpText">Bir görev istasyonuna nişan al</span>
+      </div>
+      <ul class="tp-list" id="tpList"></ul>`;
+    const close = $("#tpClose");
+    if (close) addEvt(close, "click", exitInterior);
+    renderTaskList();
+  }
+
+  function hideTaskPanel() {
+    const el = $("#taskpanel");
+    if (el) el.hidden = true;
+  }
+
+  function renderTaskList() {
+    const ul = $("#tpList");
+    if (!ul || !player.inside) return;
+    const h = player.inside;
+    let items = "";
+    if (h.type === "farm") {
+      items = h.planters
+        .map(
+          (p, i) =>
+            `<li><span>Yatak ${i + 1}</span><b class="${p.stage}">${plotLabelFor(p)}</b></li>`,
+        )
+        .join("");
+    } else if (h.type === "habitat") {
+      const sleepers = astrons.filter((a) => a.inside === h && a.state === "sleep").length;
+      const workers = astrons.filter((a) => a.inside === h && a.state === "work").length;
+      items = `<li><span>Uyuyan</span><b>${sleepers}</b></li>
+               <li><span>Çalışan</span><b>${workers}</b></li>
+               <li><span>Bütünlük</span><b>%${h.b.hp.toFixed(0)}</b></li>`;
+    } else {
+      items = `<li><span>Bütünlük</span><b>%${h.b.hp.toFixed(0)}</b></li>
+               <li><span>Seviye</span><b>Sv ${h.b.lvl}</b></li>`;
+    }
+    ul.innerHTML = items;
+  }
+
+  /** İçeride crosshair ile görev hedefi arar. */
+  function pickTask() {
+    if (!player.inside) return null;
+    const list = player.inside.stations;
+    if (!list || !list.length) return null;
+    ray.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const hits = ray.intersectObjects(list, true);
+    for (const h of hits) {
+      let o = h.object;
+      while (o && !o.userData.task) o = o.parent;
+      if (o?.userData.task) return o.userData.task;
+    }
+    return null;
+  }
+  function completeTask(task) {
+    const h = player.inside;
+    if (!h) return;
+    const b = h.b;
+    switch (task.effect) {
+      case "plot": {
+        const p = h.planters[task.planter];
+        if (!p) return;
+        if (p.stage === "empty") {
+          p.stage = "growing";
+          p.growth = 0.04;
+          p.water = Math.max(p.water, 0.75);
+          p.plant.visible = true;
+          p.weeds.visible = true;
+          toast(`Yatak ${p.index + 1}: tohum eklendi · otlar çıktı — <b>çapala</b>`, "ok");
+        } else if (p.weeds.visible) {
+          p.weeds.visible = false;
+          toast(`Yatak ${p.index + 1}: otlar çapalandı`, "ok");
+        } else if (p.stage === "growing") {
+          if (p.water < 0.5) {
+            p.water = 1;
+            toast(`Yatak ${p.index + 1}: sulandı 💧`, "ok");
+          } else {
+            p.growth = Math.min(1, p.growth + 0.3);
+            if (p.growth >= 1) {
+              p.stage = "ripe";
+              toast(`Yatak ${p.index + 1}: mahsul olgunlaştı — <b>hasat</b> edebilirsin`, "ok");
+            } else toast(`Yatak ${p.index + 1}: büyüme hızlandı`, "ok");
+          }
+        } else {
+          p.stage = "empty";
+          p.growth = 0;
+          p.harvested = (p.harvested || 0) + 42;
+          p.plant.visible = false;
+          p.weeds.visible = false;
+          toast(`Yatak ${p.index + 1}: <b>hasat</b> edildi · +42 ürün (kasaya)`, "ok");
+        }
+        break;
+      }
+      case "water_tank":
+        gain("su", 220);
+        h.planters.forEach((p) => (p.water = 1));
+        toast("Su tankı doldu · +220 L", "ok");
+        break;
+      case "harvest_bin": {
+        const total = h.planters.reduce((s, p) => s + (p.harvested || 0), 0);
+        if (total <= 0) {
+          toast("Önce olgunlaşmış bitkileri hasat et", "warn");
+          return;
+        }
+        h.planters.forEach((p) => (p.harvested = 0));
+        gain("besin", Math.round(total * 0.4));
+        toast(`Hasat koloni deposuna sevk edildi · +${Math.round(total * 0.4)} besin`, "ok");
+        break;
+      }
+      case "seed_box":
+        h.planters.forEach((p) => {
+          if (p.stage !== "growing") return;
+          p.growth = clamp(p.growth + 0.1, 0, 1);
+          if (p.growth >= 1) p.stage = "ripe";
+        });
+        toast("Tohumlar ıslatıldı · büyüme hızlandı", "ok");
+        break;
+      case "ore":
+        if (task.seam) task.seam.scale.multiplyScalar(0.75);
+        gain("parça", 14);
+        b.hp = clamp(b.hp - 1.5, 10, 100);
+        toast("Cevher çıkarıldı · +14 parça", "ok");
+        break;
+      case "cart":
+        gain("parça", 8);
+        toast("Vagon yüzeye kalktı · +8 parça", "ok");
+        break;
+      case "sample":
+        b.hp = clamp(b.hp + 1, 0, 100);
+        toast("Biyokültür numunesi alındı", "ok");
+        break;
+      case "analyze":
+        gain("enerji", 6);
+        toast("Analiz tamamlandı · +6 enerji", "ok");
+        break;
+      case "centrifuge":
+        gain("oksijen", 1.5);
+        toast("Santrifüj çalıştı · +1.5 oksijen", "ok");
+        break;
+      case "inverter":
+        b.hp = clamp(b.hp + 6, 0, 100);
+        gain("enerji", 18);
+        toast("İnvertör kalibre edildi · +18 enerji", "ok");
+        break;
+      case "battery":
+        gain("enerji", 10);
+        toast("Bataryalar şarj edildi · +10 enerji", "ok");
+        break;
+      case "fuel":
+        b.hp = clamp(b.hp + 4, 0, 100);
+        toast("Yakıt tankları dolduruldu", "ok");
+        break;
+      case "launch":
+        b.lvl = Math.min(9, b.lvl + 1);
+        toast(`<b>Fırlatma sırası hazır!</b> Fırlatma Kullesi → Sv ${b.lvl}`, "ok");
+        break;
+      case "repair":
+      default:
+        b.hp = clamp(b.hp + 8, 0, 100);
+        toast(`Bakım tamamlandı · ${b.n} bütünlüğü %${b.hp.toFixed(0)}`, "ok");
+        break;
+    }
+    renderTaskList();
+  }
+
   function updateHover() {
     const hit = player.inside ? null : pickFromCenter();
     hovered = hit;
     const h = player.inside ? null : nearDoor();
+    taskTarget = player.inside ? pickTask() : null;
     const key =
       (hit ? hit.kind + (hit.ref.name ?? hit.ref.n ?? "") : "") +
       (h ? "D" : "") +
-      (player.inside ? "I" : "");
+      (player.inside ? "I" + (taskTarget ? taskTarget.id : "") : "");
     if (key === lastHoverKey) return;
     lastHoverKey = key;
 
     const crosshair = $("#crosshair");
-    if (crosshair) crosshair.classList.toggle("active", !!hit || !!h);
+    if (crosshair) crosshair.classList.toggle("active", !!hit || !!h || !!taskTarget);
 
     const hint = $("#hint");
     if (hint) {
       hint.innerHTML = player.inside
-        ? `<b>${player.inside.b.n}</b> içindesin · <kbd>WASD</kbd> dolaş · <kbd>Q</kbd> veya <kbd>E</kbd> ile dışarı çık`
+        ? taskTarget
+          ? `<b>${taskTarget.label}</b> — <b>E</b> basılı tut · ${taskTarget.hint || ""} · <kbd>Q</kbd> çıkış`
+          : `<b>${player.inside.b.n}</b> içindesin · <kbd>WASD</kbd> dolaş · görev istasyonuna nişan al · <kbd>Q</kbd> çıkış`
         : h
-          ? `<b>${h.b.n}</b> kapısı — <kbd>E</kbd> ile içeri gir (uyuyan & çalışan mürettebat)`
+          ? `<b>${h.b.n}</b> kapısı — <kbd>E</kbd> ile içeri gir (${h.hint})`
           : hit
             ? hit.kind === "crew"
               ? `<b>${hit.ref.name}</b> · ${hit.ref.role} — etkileşim için <kbd>E</kbd>`
@@ -1499,22 +1803,28 @@ export function initMars3D() {
     $("#insName").textContent = b.n;
     $("#insRole").textContent = BUILD_DEFS[b.t].name;
     const barColor = b.hp > 60 ? "var(--green)" : b.hp > 35 ? "var(--gold)" : "var(--red)";
-    const hab = habitats.find((h) => h.b === b);
+    const hab = interiors.find((h) => h.b === b);
     const sleepers = hab ? astrons.filter((a) => a.inside === hab && a.state === "sleep") : [];
     const workers = hab ? astrons.filter((a) => a.inside === hab && a.state === "work") : [];
+    const farmPlots = hab?.planters?.length
+      ? `<div class="ins-row"><span>Ekim</span><b>${
+          hab.planters.filter((p) => p.stage === "ripe").length
+        } olgun / ${hab.planters.length} yatak</b></div>`
+      : "";
     $("#insRows").innerHTML = `
       <div class="ins-row"><span>Durum</span><b>${b.hp > 60 ? "Çalışıyor" : b.hp > 35 ? "Bakım gerekli" : "Arızalı"}</b></div>
       <div class="ins-bar"><i style="width:${b.hp}%;background:${barColor}"></i></div>
       <div class="ins-row"><span>Bütünlük</span><b>%${b.hp.toFixed(0)}</b></div>
       ${hab ? `<div class="ins-row"><span>İçeride</span><b>${sleepers.length} uyuyan · ${workers.length} çalışan</b></div>` : ""}
+      ${farmPlots}
       <div class="ins-row"><span>Seviye</span><b>Sv ${b.lvl}</b></div>
       <div class="ins-row"><span>Uzaklık</span><b>${Math.round(Math.hypot(b.x - player.pos.x, b.z - player.pos.z))} m</b></div>`;
     $("#insActions").innerHTML =
-      (hab ? '<button class="act" data-enter="1">İçeri gir</button>' : "") +
+      (hab ? `<button class="act" data-enter="1">İçeri gir · ${hab.hint}</button>` : "") +
       '<button class="act" data-goto="1">Bu yapıya git</button>';
     if (hab) {
       const enterBtn = $("#insActions [data-enter]");
-      if (enterBtn) addEvt(enterBtn, "click", () => enterHabitat(hab));
+      if (enterBtn) addEvt(enterBtn, "click", () => enterInterior(hab));
     }
     const gotoBtn = $("#insActions [data-goto]");
     if (gotoBtn)
@@ -1639,6 +1949,23 @@ export function initMars3D() {
     } else if (act === "work") {
       goToWork(a);
       toast(`<b>${a.crew.name}</b> ${a.habitat.b.n} içinde çalışmaya başladı`, "ok");
+    } else if (act === "job") {
+      const jobs = interiors.filter((e) => e.type !== "habitat" && e.stations.length);
+      const target = jobs[irnd(0, jobs.length - 1)];
+      goToJob(a, target);
+      toast(`<b>${a.crew.name}</b> → ${target.b.n} görev istasyonu`, "ok");
+    } else if (act === "enter") {
+      if (a.inside) {
+        toast(`<b>${a.crew.name}</b> zaten ${a.inside.b.n} içinde`);
+      } else {
+        const target = interiors[irnd(0, interiors.length - 1)];
+        teleportNear(target.door.x, target.door.z);
+        a.state = "inspect";
+        a.waitFor = 0;
+        a.inspectTarget = new THREE.Vector3(target.door.x, 0, target.door.z);
+        a.statusText = STATE_TEXT.inspect;
+        toast(`<b>${a.crew.name}</b> → ${target.b.n} kapısına gönderildi`, "ok");
+      }
     } else if (act === "outside") {
       if (a.inside) {
         sendOutside(a);
@@ -1778,6 +2105,8 @@ export function initMars3D() {
     updateFollowCam(dt);
     updateCrew(dt);
     updateHover();
+    updateTasks(dt);
+    updatePlanters(dt);
 
     dust.rotation.y = t * 0.006;
     dust.position.x = Math.sin(t * 0.15) * 6;
@@ -1852,7 +2181,7 @@ export function initMars3D() {
   if (loader) setTimeout(() => loader.classList.add("hide"), 400);
 
   toast(
-    "<b>Ares Vallis</b> — <b>V</b> ile FPS/TPS değiştir, habitat kapısında <b>E</b> ile içeri gir. Mürettebatın bir kısmı uyuyor, bir kısmı çalışıyor.",
+    "<b>Ares Vallis</b> — Her binanın kapısı var: yaklaş ve <b>E</b> ile içeri gir. İçeride görev istasyonlarına nişan alıp <b>E</b> basılı tut (farmda ekim yap, çapala, hasat et). <b>V</b> kamera, <b>Q</b> çıkış.",
     "ok",
   );
 
@@ -1862,6 +2191,6 @@ export function initMars3D() {
       target.removeEventListener(event, handler);
     });
     renderer.dispose();
-    if (sceneEl) sceneEl.innerHTML = '';
+    if (sceneEl) sceneEl.innerHTML = "";
   };
 }

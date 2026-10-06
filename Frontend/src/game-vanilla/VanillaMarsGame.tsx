@@ -64,6 +64,9 @@ export function VanillaMarsGame() {
         </a>
       </div>
 
+      {/* ===== İÇ MEKÂN GÖREV PANELİ ===== */}
+      <div className="taskpanel glass" id="taskpanel" hidden></div>
+
       {/* ===== SOL TARAF: KİŞİ LİSTESİ ===== */}
       <aside className="roster glass" id="roster">
         <header>
@@ -106,7 +109,8 @@ export function VanillaMarsGame() {
           <kbd>A</kbd>
           <kbd>S</kbd>
           <kbd>D</kbd> · Bakış: fare · Koş: <kbd>Shift</kbd> · Kamera: <kbd>V</kbd> · Etkileşim:{" "}
-          <kbd>E</kbd>
+          <kbd>E</kbd> · Binalara gir: kapıya yaklaş ve <kbd>E</kbd> · Görev için <kbd>E</kbd>{" "}
+          basılı tut
         </div>
         <div className="toast-wrap" id="toasts"></div>
       </div>
@@ -121,6 +125,8 @@ export function VanillaMarsGame() {
           <option value="build">Yapıyı incele</option>
           <option value="sleep">Uyumaya git</option>
           <option value="work">İçeri gir, çalış</option>
+          <option value="job">Görev istasyonuna çalış</option>
+          <option value="enter">Binasına gir</option>
           <option value="outside">Uyandır, dışarı çıkar</option>
           <option value="rest">Dinlenmeye git</option>
         </select>
