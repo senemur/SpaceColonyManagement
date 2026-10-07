@@ -1,6 +1,6 @@
 # 🚀 Space Colony Management
 
-A space colony management game built with **ASP.NET Core, EF Core, PostgreSQL and Razor Pages**.
+A 3D space colony management strategy game built with **ASP.NET Core (.NET 9) Backend (CQRS Pattern)** and **Next.js 16 (React 19, TypeScript, Three.js 3D Engine, TanStack Query, Tailwind CSS v4)** frontend.
 
 The goal of this project is to build a small but expandable management/strategy game while learning and practicing real-world backend development, database design, business logic, and frontend integration.
 
@@ -300,66 +300,85 @@ The Dashboard will be the main screen of the game.
 
 ## 🧱 Architecture
 
-The project will use a layered architecture.
+The project follows a decoupled **Clean Architecture** on the backend using the **CQRS (Command Query Responsibility Segregation) Pattern**, and a **Feature-Based Architecture** on the frontend.
+
+### Backend CQRS Architecture
 
 ```text
-SpaceColony
+SpaceColonyManagement.Backend
 │
 ├── src
 │   ├── Core
-│   ├── Entities
-│   ├── Business
-│   ├── DataAccess
-│   └── Web
+│   │   ├── Domain               (Entities, Aggregates, Enums, Value Objects)
+│   │   └── Application          (CQRS Commands, Queries, Handlers, DTOs, Interfaces)
+│   ├── Infrastructure           (Database Context, Persistence, Repositories, Services)
+│   └── Api                      (ASP.NET Core Web API Controllers & Endpoints)
 │
 └── tests
-    ├── Business.Tests
-    └── DataAccess.Tests
+    ├── Application.Tests
+    └── Domain.Tests
 ```
 
 ### Dependency Direction
 
 ```text
-Web
+Api
  ↓
-Business
+Application (CQRS Commands & Queries)
  ↓
-DataAccess
- ↓
-Entities
- ↓
-Core
+Domain
+ ↖ Infrastructure (Implements Application interfaces & DbContext)
 ```
 
-The goal is to keep responsibilities separated and make the project easier to maintain and test.
+### Frontend Feature-Based Architecture
+
+```text
+Frontend/src/
+├── app/                  (Next.js App Router: /, /colony, /colonists, /buildings, /exploration, etc.)
+├── features/             (Feature-Based Modules)
+│   ├── game-3d/          (3D Simulation Engine: mars3d.js, interiors.js, Mars3DView)
+│   ├── colony/           (Colony Overview API & 3D Mars Planet Globe canvas)
+│   ├── colonists/        (Crew Roster & Assignment)
+│   ├── buildings/        (Building management & Upgrades)
+│   ├── exploration/      (Surface missions)
+│   ├── research/         (Tech tree)
+│   ├── events/           (Event log)
+│   └── auth/             (Login & Register)
+└── shared/               (Navbar, Axios Client, TanStack Query Provider, UI Utilities)
+```
 
 ---
 
 ## 🛠️ Technology Stack
 
-### Backend
+### Backend (.NET 9)
 
-* C#
-* ASP.NET Core
-* Entity Framework Core
+* **C# / .NET 9**
+* **ASP.NET Core Web API**
+* **CQRS Pattern** (Command Query Responsibility Segregation via MediatR)
+* **Entity Framework Core**
+* **FluentValidation** & MediatR Pipeline Behaviors
 
 ### Database
 
-* PostgreSQL
-* Supabase
+* **PostgreSQL**
+* **Supabase**
 
-### Frontend
+### Frontend (Next.js 16 + React 19)
 
-* Razor Pages
-* Bootstrap
-* HTML
-* CSS
-* JavaScript where necessary
+* **Next.js 16 (App Router in CSR mode)**
+* **TypeScript** & **JavaScript (WebGL 3D Engine)**
+* **Feature-Based Folder Architecture**
+* **Three.js** (Interactive 3D Mars Planet Globe + Full 3D FPS/TPS Colony Explorer with Interiors, Character AI & Particle Weather)
+* **TanStack Query v5** (React Query for async data fetching & caching)
+* **Axios** (HTTP Client)
+* **Tailwind CSS v4** & Custom Glassmorphism System
+* **Lucide React** (Icons)
 
 ### Testing
 
-* Unit Tests
-* Integration Tests
+* **Unit Tests** (xUnit, NSubstitute)
+* **Integration Tests**
 
 ---
 
