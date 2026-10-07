@@ -2,9 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\Frontend",
-    "\\Frontend\\src",
-    "\\Frontend\\src\\game"
+    "\\Frontend\\src"
   ],
-  "SelectedNode": "\\Frontend\\src\\game\\GameHUD.tsx",
+  "SelectedNode": "\\Frontend\\src\\start.ts",
   "PreviewInSolutionExplorer": false
 }

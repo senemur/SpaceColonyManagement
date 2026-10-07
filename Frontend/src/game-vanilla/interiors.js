@@ -110,7 +110,12 @@ function lampStrip(g, w, y, z) {
 function room(w, h, d, wallMat = null, floorMat = null) {
   const mt = mats();
   const g = new THREE.Group();
-  const shell = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat || mt.wall);
+  // Use BackSide so the walls are visible from inside
+  const wallM = wallMat
+    ? wallMat.clone()
+    : mt.wall.clone();
+  wallM.side = THREE.BackSide;
+  const shell = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallM);
   shell.position.y = h / 2;
   shell.receiveShadow = true;
   g.add(shell);
@@ -380,6 +385,26 @@ function farmInterior() {
       stations.push(target);
     }
   }
+
+  // Başlangıçta bazı yatakları ekili göster
+  planters.forEach((p, i) => {
+    if (i < 6) {
+      p.stage = "growing";
+      p.growth = 0.3 + (i % 3) * 0.25;
+      p.water = 0.7;
+      p.plant.visible = true;
+      if (i % 2 === 0) p.weeds.visible = true;
+      const s = 0.35 + p.growth * 0.75;
+      p.plant.scale.set(s, s, s);
+    } else if (i < 9) {
+      p.stage = "ripe";
+      p.growth = 1;
+      p.plant.visible = true;
+      const s = 0.35 + 0.75;
+      p.plant.scale.set(s, s, s);
+      p.fruit.scale.setScalar(1.35);
+    }
+  });
 
   const tank = new THREE.Group();
   tank.position.set(8.3, 0, 5.2);

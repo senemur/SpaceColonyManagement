@@ -1154,11 +1154,19 @@ export function initMars3D() {
       if (c !== h.interior.group) c.visible = false;
     });
     h.interior.group.visible = true;
+    // Set interior background so sky doesn't show through
+    scene.background = new THREE.Color(0xd7d2c8);
+    scene.fog = null;
     taskProgress = 0;
     taskTarget = null;
     taskListKey = "";
     lastTaskListKey = "";
     showTaskPanel(h);
+    // Always refresh right panel so button changes to 'Dışarı çık'
+    showInspectBuild(h.b);
+    // Also switch left panel to show task list, not roster
+    const roster = $("#roster");
+    if (roster) roster.classList.add("collapsed");
     toast(`<b>${h.b.n}</b> içeri girdin · ${h.hint} · <kbd>Q</kbd> ile dışarı çık`, "ok");
   }
 
@@ -1182,29 +1190,30 @@ export function initMars3D() {
     taskListKey = "";
     lastTaskListKey = "";
     hideTaskPanel();
-    toast(`<b>${h.b.n}</b> dışına çıktın — EYLEM: basınç kaybı riski`, "warn");
+    // Restore scene background and fog
+    scene.background = null;
+    scene.fog = new THREE.Fog(0xb8603a, 120, 420);
+    // Refresh right panel so button changes back to 'İçeri gir'
+    showInspectBuild(h.b);
+    // Restore roster panel
+    const roster = $("#roster");
+    if (roster) roster.classList.remove("collapsed");
+    toast(`<b>${h.b.n}</b> dışına çıktın — basınç kaybetmeden çıkıldı`, "warn");
   }
 
   const canvas = renderer.domElement;
   let locked = false;
 
   const onClickCanvas = () => {
-    // Always try to (re-)acquire pointer lock on canvas click
     try {
       canvas.requestPointerLock();
     } catch {}
   };
-  addEvt(canvas, "click", onClickCanvas);
   
-  const playOverlay = $("#playOverlay");
-  if (playOverlay) {
-    addEvt(playOverlay, "click", onClickCanvas);
-  }
-
-  // Right-click releases pointer lock
-  addEvt(canvas, "contextmenu", (e) => {
+  // Right-click releases pointer lock (handled in mousedown).
+  // Prevent default context menu everywhere so it doesn't interrupt the game.
+  addEvt(document, "contextmenu", (e) => {
     e.preventDefault();
-    if (locked) document.exitPointerLock();
   });
 
   const onPLock = () => {
@@ -1222,20 +1231,32 @@ export function initMars3D() {
   addEvt(document, "mousemove", onMMove);
 
   let dragging = false,
+    dragDist = 0,
     lastX = 0,
     lastY = 0;
   const onMD = (e) => {
+    if (locked && e.button === 2) {
+      document.exitPointerLock();
+      return;
+    }
     if (!locked) {
       dragging = true;
+      dragDist = 0;
       lastX = e.clientX;
       lastY = e.clientY;
     }
   };
-  const onMU = () => {
+  const onMU = (e) => {
+    if (!locked && dragging && dragDist < 5 && e.button === 0) {
+      try {
+        canvas.requestPointerLock();
+      } catch {}
+    }
     dragging = false;
   };
   const onMM = (e) => {
     if (locked || !dragging) return;
+    dragDist += Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY);
     player.yaw -= (e.clientX - lastX) * 0.004;
     player.pitch -= (e.clientY - lastY) * 0.004;
     player.pitch = clamp(player.pitch, -1.35, 1.35);
@@ -1548,7 +1569,7 @@ export function initMars3D() {
     }
 
     if (taskHolding) {
-      taskProgress += dt / (taskTarget.dur || 2.5);
+      taskProgress += dt / 0.8;
       if (taskProgress >= 1) {
         taskProgress = 0;
         completeTask(taskTarget);
@@ -1887,13 +1908,22 @@ export function initMars3D() {
       ${farmPlots}
       <div class="ins-row"><span>Seviye</span><b>Sv ${b.lvl}</b></div>
       <div class="ins-row"><span>Uzaklık</span><b>${Math.round(Math.hypot(b.x - player.pos.x, b.z - player.pos.z))} m</b></div>`;
-    $("#insActions").innerHTML =
-      (hab ? `<button class="act" data-enter="1">İçeri gir · ${hab.hint}</button>` : "") +
-      '<button class="act" data-goto="1">Bu yapıya git</button>';
-    if (hab) {
-      const enterBtn = $("#insActions [data-enter]");
-      if (enterBtn) addEvt(enterBtn, "click", () => enterInterior(hab));
-    }
+      const isInsideThis = player.inside === hab;
+      $("#insActions").innerHTML =
+        (hab ? (isInsideThis 
+          ? `<button class="act" data-exit="1">Dışarı çık</button>`
+          : `<button class="act" data-enter="1">İçeri gir · ${hab.hint}</button>`) 
+        : "") +
+        '<button class="act" data-goto="1">Bu yapıya git</button>';
+      if (hab) {
+        if (isInsideThis) {
+          const exitBtn = $("#insActions [data-exit]");
+          if (exitBtn) addEvt(exitBtn, "click", exitInterior);
+        } else {
+          const enterBtn = $("#insActions [data-enter]");
+          if (enterBtn) addEvt(enterBtn, "click", () => enterInterior(hab));
+        }
+      }
     const gotoBtn = $("#insActions [data-goto]");
     if (gotoBtn)
       addEvt(gotoBtn, "click", () => {
