@@ -1,4 +1,4 @@
-# 🚀 Space Colony Management
+# 🚀 Space Colony Management (IT IS CONTINUING)
 
 A 3D space colony management strategy game built with **ASP.NET Core (.NET 9) Backend (CQRS Pattern)** and **Next.js 16 (React 19, TypeScript, Three.js 3D Engine, TanStack Query, Tailwind CSS v4)** frontend.
 
