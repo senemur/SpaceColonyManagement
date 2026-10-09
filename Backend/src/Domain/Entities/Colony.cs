@@ -13,11 +13,16 @@ public class Colony : BaseEntity
 
     public ColonyStats Stats { get; set; } = new ColonyStats();
 
-    public Colony()
-    {
-    }
+    public Colony() { }
 
-    public Colony(string name, string description, string commander, string location, string planet,ColonyStats? stats = null)
+    public Colony(
+        string name,
+        string description,
+        string commander,
+        string location,
+        string planet,
+        ColonyStats? stats = null
+    )
     {
         Name = name;
         Description = description;
@@ -27,11 +32,18 @@ public class Colony : BaseEntity
         Stats = stats ?? new ColonyStats();
     }
 
-     // 3. Constructor with Id (Test & Mocking için)
-    public Colony(int id, string name, string description, string commander, string location, string planet, ColonyStats? stats = null)
+    // 3. Constructor with Id (Test & Mocking için)
+    public Colony(
+        int id,
+        string name,
+        string description,
+        string commander,
+        string location,
+        string planet,
+        ColonyStats? stats = null
+    )
         : this(name, description, commander, location, planet, stats)
     {
         Id = id;
     }
-
 }

@@ -4,12 +4,12 @@ namespace Domain.ValueObjects;
 
 public class ColonyStats
 {
-    public int Sol { get; set; } =1;
+    public int Sol { get; set; } = 1;
     public int Population { get; set; } = 10;
     public int MaxPopulation { get; set; } = 25;
 
     public decimal Power { get; set; } = 100;
-    public decimal MaxPower { get; set; } =250;
+    public decimal MaxPower { get; set; } = 250;
 
     public decimal Water { get; set; } = 80;
     public decimal MaxWater { get; set; } = 100;
@@ -25,9 +25,7 @@ public class ColonyStats
 
     public int SafetyScore { get; set; } = 100;
 
-    public ColonyStats()
-    {
-    }
+    public ColonyStats() { }
 
     public ColonyStats(
         int sol = 1,
@@ -43,7 +41,8 @@ public class ColonyStats
         decimal maxFood = 500,
         decimal minerals = 1000,
         decimal credits = 25000,
-        int safetyScore = 100)
+        int safetyScore = 100
+    )
     {
         Sol = sol;
         Population = population;
