@@ -1,4 +1,4 @@
-namespace Application.FeaturesColonies.Queries.GetOverview;
+namespace Application.Features.Colonies.Queries.GetOverview;
 
 using Domain.ValueObjects;
 

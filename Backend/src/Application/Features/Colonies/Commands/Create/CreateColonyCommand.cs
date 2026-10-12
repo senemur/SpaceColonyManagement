@@ -13,27 +13,17 @@ public class CreateColonyCommand : IRequest<CreatedColonyResponse>
     public string Planet { get; set; } = null!;
     public string Location { get; set; } = null!;
 
-    public class CreateColonyCommandHandler
-        : IRequestHandler<CreateColonyCommand, CreatedColonyResponse>
+        public class CreateColonyCommandHandler(
+        IColonyRepository colonyRepository,
+        IMapper mapper,
+        ColonyBusinessRules colonyBusinessRules
+    ) : IRequestHandler<CreateColonyCommand, CreatedColonyResponse>
     {
-        private readonly IColonyService _colonyService;
-        private readonly IMapper _mapper;
-
-        public CreateColonyCommandHandler(IColonyService colonyService, IMapper mapper)
+        public async Task<CreatedColonyResponse> Handle(CreateColonyCommand request, CancellationToken cancellationToken)
         {
-            _colonyService = colonyService;
-            _mapper = mapper;
-        }
-
-        public async Task<CreatedColonyResponse> Handle(
-            CreateColonyCommand request,
-            CancellationToken cancellationToken
-        )
-        {
-            Colony colony = _mapper.Map<Colony>(request);
-            Colony createdColony = await _colonyService.AddAsync(colony, cancellationToken);
-            CreatedColonyResponse response = _mapper.Map<CreatedColonyResponse>(createdColony);
-            return response;
+            Colony colony = mapper.Map<Colony>(request);
+            Colony createdColony = await colonyRepository.AddAsync(colony);
+            return mapper.Map<CreatedColonyResponse>(createdColony);
         }
     }
 }

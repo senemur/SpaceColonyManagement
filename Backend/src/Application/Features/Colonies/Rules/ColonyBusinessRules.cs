@@ -3,7 +3,7 @@ namespace Application.Features.Colonies.Rules;
 using Application.Features.Colonies.Constants;
 using Domain.Entities;
 
-public class ColonyBusinessRules
+public class ColonyBusinessRules : BaseBusinessRules
 {
     public Task ColonyShouldExistWhenRequested(Colony? colony)
     {

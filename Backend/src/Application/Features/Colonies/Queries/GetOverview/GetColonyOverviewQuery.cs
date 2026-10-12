@@ -33,7 +33,7 @@ public class GetColonyOverviewQuery : IRequest<GetColonyOverviewResponse>
             CancellationToken cancellationToken
         )
         {
-            Colony? colony = await _colonyService.GetByIdAsync(request.ColonyId, cancellationToken);
+            Colony? colony = await _colonyService.GetByIdAsync(request.Id, cancellationToken);
             await _colonyBusinessRules.ColonyShouldExistWhenRequested(colony);
 
             GetColonyOverviewResponse response = _mapper.Map<GetColonyOverviewResponse>(colony);

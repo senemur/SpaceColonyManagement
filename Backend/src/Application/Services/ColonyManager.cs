@@ -1,32 +1,41 @@
 namespace Application.Services;
 
+namespace Application.Services;
+
+using Application.Services.Repositories;
 using Domain.Entities;
 
 public class ColonyManager : IColonyService
 {
-    // Persistence aşamasında DbContext veya Repository injection ekleyeceğiz.
-    public Task<Colony?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    private readonly IColonyRepository _colonyRepository;
+
+    public ColonyManager(IColonyRepository colonyRepository)
     {
-        throw new NotImplementedException();
+        _colonyRepository = colonyRepository;
     }
 
-    public Task<List<Colony>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<Colony?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return await _colonyRepository.GetByIdAsync(id, cancellationToken);
     }
 
-    public Task<Colony> AddAsync(Colony colony, CancellationToken cancellationToken = default)
+    public async Task<List<Colony>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return await _colonyRepository.GetAllAsync(cancellationToken);
     }
 
-    public Task<Colony> UpdateAsync(Colony colony, CancellationToken cancellationToken = default)
+    public async Task<Colony> AddAsync(Colony colony, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return await _colonyRepository.AddAsync(colony, cancellationToken);
     }
 
-    public Task<Colony> DeleteAsync(Colony colony, CancellationToken cancellationToken = default)
+    public async Task<Colony> UpdateAsync(Colony colony, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return await _colonyRepository.UpdateAsync(colony, cancellationToken);
+    }
+
+    public async Task<Colony> DeleteAsync(Colony colony, CancellationToken cancellationToken = default)
+    {
+        return await _colonyRepository.DeleteAsync(colony, cancellationToken);
     }
 }

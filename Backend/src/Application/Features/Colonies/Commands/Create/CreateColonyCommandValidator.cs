@@ -1,4 +1,4 @@
-namespace AApplication.Features.Colonies.Commands.Create;
+namespace Application.Features.Colonies.Commands.Create;
 
 using FluentValidation;
 

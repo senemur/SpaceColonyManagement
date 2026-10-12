@@ -3,7 +3,7 @@ namespace Domain.Entities;
 using Domain.Entities.Common;
 using Domain.ValueObjects;
 
-public class Colony : BaseEntity
+public class Colony : Entity<int>
 {
     public string Name { get; set; } = null!;
     public string Planet { get; set; } = null!;
@@ -13,7 +13,7 @@ public class Colony : BaseEntity
 
     public ColonyStats Stats { get; set; } = new ColonyStats();
 
-    public Colony() { }
+    public Colony() : base() { }
 
     public Colony(
         string name,

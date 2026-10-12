@@ -6,6 +6,13 @@
     <Project Path="src/Persistence/Persistence.csproj" />
     <Project Path="src/WebAPI/WebAPI.csproj" />
   </Folder>
+  <Folder Name="/src/corePackages/" />
+  <Folder Name="/src/corePackages/src/">
+    <Project Path="src/corePackages/src/Core.Application/Core.Application.csproj" />
+    <Project Path="src/corePackages/src/Core.CrossCuttingConcerns/Core.CrossCuttingConcerns.csproj" />
+    <Project Path="src/corePackages/src/Core.Persistence/Core.Persistence.csproj" />
+    <Project Path="src/corePackages/src/Core.Security/Core.Security.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Application.Tests/Application.Tests.csproj" />
   </Folder>
