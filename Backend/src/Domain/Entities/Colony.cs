@@ -1,6 +1,6 @@
 namespace Domain.Entities;
 
-using Domain.Entities.Common;
+using Core.Persistence.Repositories;
 using Domain.ValueObjects;
 
 public class Colony : Entity<int>
