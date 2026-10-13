@@ -20,9 +20,15 @@ public class CreateColonyCommand : IRequest<CreatedColonyResponse>
         ColonyBusinessRules colonyBusinessRules
     ) : IRequestHandler<CreateColonyCommand, CreatedColonyResponse>
     {
-        public async Task<CreatedColonyResponse> Handle(CreateColonyCommand request, CancellationToken cancellationToken)
+        public async Task<CreatedColonyResponse> Handle(
+            CreateColonyCommand request,
+            CancellationToken cancellationToken
+        )
         {
-            await colonyBusinessRules.ColonyNameCannotBeDuplicatedWhenInserted(request.Name, cancellationToken);
+            await colonyBusinessRules.ColonyNameCannotBeDuplicatedWhenInserted(
+                request.Name,
+                cancellationToken
+            );
 
             Colony colony = mapper.Map<Colony>(request);
             Colony createdColony = await colonyRepository.AddAsync(colony, cancellationToken);

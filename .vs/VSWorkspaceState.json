@@ -1,9 +1,15 @@
 {
   "ExpandedNodes": [
     "",
-    "\\Frontend",
+    "\\Backend",
+    "\\Backend\\src",
+    "\\Backend\\src\\Application",
+    "\\Backend\\src\\Application\\Features",
+    "\\Backend\\src\\Application\\Features\\Colonies",
+    "\\Backend\\src\\WebAPI",
+    "\\Backend\\src\\WebAPI\\Controllers",
     "\\Frontend\\src"
   ],
-  "SelectedNode": "\\Frontend\\src\\start.ts",
+  "SelectedNode": "\\Backend\\src\\Application\\Application.csproj",
   "PreviewInSolutionExplorer": false
 }

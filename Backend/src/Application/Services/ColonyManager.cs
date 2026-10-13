@@ -13,7 +13,9 @@ public class ColonyManager(IColonyRepository colonyRepository) : IColonyService
         );
     }
 
-    public async Task<ICollection<Colony>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<ICollection<Colony>> GetAllAsync(
+        CancellationToken cancellationToken = default
+    )
     {
         return await colonyRepository.GetAllAsync(cancellationToken: cancellationToken);
     }
@@ -23,13 +25,24 @@ public class ColonyManager(IColonyRepository colonyRepository) : IColonyService
         return await colonyRepository.AddAsync(colony, cancellationToken);
     }
 
-    public async Task<Colony> UpdateAsync(Colony colony, CancellationToken cancellationToken = default)
+    public async Task<Colony> UpdateAsync(
+        Colony colony,
+        CancellationToken cancellationToken = default
+    )
     {
         return await colonyRepository.UpdateAsync(colony, cancellationToken);
     }
 
-    public async Task<Colony> DeleteAsync(Colony colony, bool permanent = false, CancellationToken cancellationToken = default)
+    public async Task<Colony> DeleteAsync(
+        Colony colony,
+        bool permanent = false,
+        CancellationToken cancellationToken = default
+    )
     {
-        return await colonyRepository.DeleteAsync(colony, permanent: permanent, cancellationToken: cancellationToken);
+        return await colonyRepository.DeleteAsync(
+            colony,
+            permanent: permanent,
+            cancellationToken: cancellationToken
+        );
     }
 }

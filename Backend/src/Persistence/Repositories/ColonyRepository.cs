@@ -6,4 +6,5 @@ using Domain.Entities;
 using Persistence.Contexts;
 
 public class ColonyRepository(BaseDbContext context)
-    : EfRepositoryBase<Colony, int, BaseDbContext>(context), IColonyRepository { }
+    : EfRepositoryBase<Colony, int, BaseDbContext>(context),
+        IColonyRepository { }

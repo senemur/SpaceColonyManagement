@@ -22,8 +22,7 @@ public static class PersistenceServiceRegistration
             );
 
         // Supabase (PostgreSQL) bağlantısı
-        services.AddDbContext<BaseDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        services.AddDbContext<BaseDbContext>(options => options.UseNpgsql(connectionString));
 
         // Repository Kaydı
         services.AddScoped<IColonyRepository, ColonyRepository>();

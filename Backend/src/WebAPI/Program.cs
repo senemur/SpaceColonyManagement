@@ -6,7 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Controller ve API Desteği
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+
+// Swagger Servisi (Varsayılan ayarlarla temiz kurulum)
+builder.Services.AddSwaggerGen();
 
 // Katman Servis Kayıtları
 builder.Services.AddApplicationServices();
@@ -17,17 +19,17 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
     });
 });
 
 var app = builder.Build();
 
+// Swagger UI Aktifleştirme
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();

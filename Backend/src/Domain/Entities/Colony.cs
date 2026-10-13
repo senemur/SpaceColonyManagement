@@ -13,7 +13,8 @@ public class Colony : Entity<int>
 
     public ColonyStats Stats { get; set; } = new ColonyStats();
 
-    public Colony() : base() { }
+    public Colony()
+        : base() { }
 
     public Colony(
         string name,

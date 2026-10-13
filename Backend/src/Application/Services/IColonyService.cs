@@ -8,5 +8,9 @@ public interface IColonyService
     Task<ICollection<Colony>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<Colony> AddAsync(Colony colony, CancellationToken cancellationToken = default);
     Task<Colony> UpdateAsync(Colony colony, CancellationToken cancellationToken = default);
-    Task<Colony> DeleteAsync(Colony colony, bool permanent = false, CancellationToken cancellationToken = default);
+    Task<Colony> DeleteAsync(
+        Colony colony,
+        bool permanent = false,
+        CancellationToken cancellationToken = default
+    );
 }

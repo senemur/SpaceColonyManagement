@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/[controller]")]
 public class ColoniesController : BaseController
 {
-    public ColoniesController(IConfiguration configuration) : base(configuration) { }
+    public ColoniesController(IConfiguration configuration)
+        : base(configuration) { }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateColonyCommand createColonyCommand)
@@ -20,7 +21,9 @@ public class ColoniesController : BaseController
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {
-        GetColonyOverviewResponse result = await Mediator.Send(new GetColonyOverviewQuery { Id = id });
+        GetColonyOverviewResponse result = await Mediator.Send(
+            new GetColonyOverviewQuery { Id = id }
+        );
         return Ok(result);
     }
 }

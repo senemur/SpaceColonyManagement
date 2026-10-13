@@ -15,7 +15,10 @@ public class ColonyBusinessRules(IColonyRepository colonyRepository) : BaseBusin
         return Task.CompletedTask;
     }
 
-    public async Task ColonyNameCannotBeDuplicatedWhenInserted(string name, CancellationToken cancellationToken = default)
+    public async Task ColonyNameCannotBeDuplicatedWhenInserted(
+        string name,
+        CancellationToken cancellationToken = default
+    )
     {
         bool doesExists = await colonyRepository.AnyAsync(
             predicate: c => c.Name.ToLower() == name.ToLower(),
