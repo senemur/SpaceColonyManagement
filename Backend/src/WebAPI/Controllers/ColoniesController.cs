@@ -26,4 +26,11 @@ public class ColoniesController : BaseController
         );
         return Ok(result);
     }
+
+    [HttpGet("overview")]
+    public async Task<IActionResult> GetOverview([FromQuery] int id = 1)
+    {
+        var result = await Mediator.Send(new GetColonyOverviewQuery { Id = id });
+        return Ok(result);
+    }
 }

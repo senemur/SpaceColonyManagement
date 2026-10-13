@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { axiosClient } from '@/shared/api/axiosClient';
-import { ColonyStats, ColonyOverview } from '../types';
+import { ColonyStats, ColonyOverview, ColonyZone } from '../types';
 
 export const mockColonyStats: ColonyStats = {
   sol: 142,
@@ -19,25 +19,46 @@ export const mockColonyStats: ColonyStats = {
   safetyScore: 98,
 };
 
-export const fetchColonyOverview = async (): Promise<ColonyOverview> => {
+// Mars globe'da gösterilecek koloni zone'ları
+// Şimdilik statik, ileride backend'den çekilebilir
+export const COLONY_ZONES: ColonyZone[] = [
+  { id: 1, name: 'Ares Prime', location: 'Valles Marineris', lat: -14, lon: -59, color: '#e2703a' },
+  { id: 2, name: 'Olympus Station', location: 'Olympus Mons', lat: 18, lon: -133, color: '#9d7bff' },
+  { id: 3, name: 'Arcadia Base', location: 'Arcadia Planitia', lat: 47, lon: -168, color: '#3ddc97' },
+];
+
+export const fetchColonyById = async (id: number): Promise<ColonyOverview> => {
   try {
-    const res = await axiosClient.get<ColonyOverview>('/colony/overview');
+    const res = await axiosClient.get<ColonyOverview>(`/colonies/overview?id=${id}`);
     return res.data;
   } catch {
-    // Return mock data for client offline/demo fallback
+    // Fallback mock
     return {
-      name: 'Ares Prime Colony',
+      id,
+      name: COLONY_ZONES.find(z => z.id === id)?.name ?? 'Bilinmeyen Koloni',
+      description: 'Mars kolonisi',
       commander: 'Kaptan John Ares',
-      location: 'Valles Marineris, Mars',
+      planet: 'Mars',
+      location: COLONY_ZONES.find(z => z.id === id)?.location ?? 'Mars',
       stats: mockColonyStats,
     };
   }
 };
 
-export const useColonyOverview = () => {
+export const useColonyById = (id: number) => {
   return useQuery({
-    queryKey: ['colony', 'overview'],
-    queryFn: fetchColonyOverview,
+    queryKey: ['colony', id],
+    queryFn: () => fetchColonyById(id),
+    enabled: id > 0,
     refetchInterval: 10000,
   });
+};
+
+// Geriye dönük uyumluluk için (ResourceBar hâlâ bunu kullanıyor)
+export const fetchColonyOverview = async (): Promise<ColonyOverview> => {
+  return fetchColonyById(1);
+};
+
+export const useColonyOverview = () => {
+  return useColonyById(1);
 };
