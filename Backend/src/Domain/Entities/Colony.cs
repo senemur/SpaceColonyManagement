@@ -13,6 +13,8 @@ public class Colony : Entity<int>
 
     public ColonyStats Stats { get; set; } = new ColonyStats();
 
+    public virtual ICollection<Building> Buildings { get; set; } = new List<Building>();
+
     public Colony()
         : base() { }
 

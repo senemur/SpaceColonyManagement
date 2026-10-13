@@ -2,6 +2,7 @@ namespace Application;
 
 using System.Reflection;
 using Application.Services;
+using Application.Services.BuildingService;
 using Core.Application.Rules;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,7 @@ public static class ApplicationServiceRegistration
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
         services.AddSubClassesOfType(Assembly.GetExecutingAssembly(), typeof(BaseBusinessRules));
         services.AddScoped<IColonyService, ColonyManager>();
+        services.AddScoped<IBuildingService, BuildingManager>();
 
         return services;
     }
