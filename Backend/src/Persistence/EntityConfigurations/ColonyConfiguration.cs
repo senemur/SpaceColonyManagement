@@ -10,6 +10,10 @@ public class ColonyConfiguration : IEntityTypeConfiguration<Colony>
     {
         builder.ToTable("Colonies");
         builder.HasKey(c => c.Id);
+        builder.Property(oc => oc.CreatedDate).HasColumnName("CreatedDate").IsRequired();
+        builder.Property(oc => oc.UpdatedDate).HasColumnName("UpdatedDate").IsRequired(false);
+        builder.Property(oc => oc.DeletedDate).HasColumnName("DeletedDate").IsRequired(false);
+
         builder.Property(c => c.Name).IsRequired().HasMaxLength(100);
         builder.Property(c => c.Description).HasMaxLength(500);
         builder.Property(c => c.Commander).IsRequired().HasMaxLength(100);

@@ -11,6 +11,7 @@ public class BaseDbContext(DbContextOptions dbContextOptions, IConfiguration con
     protected IConfiguration Configuration { get; set; } = configuration;
 
     public DbSet<Colony> Colonies { get; set; }
+    public DbSet<Building> Buildings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

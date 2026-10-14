@@ -22,6 +22,79 @@ namespace Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Domain.Entities.Building", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BuildingType")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ColonyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<int>("Health")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(100);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("Level")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("MaxWorkers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(4);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("PowerConsumption")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("PowerProduction")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedDate");
+
+                    b.Property<int>("Workers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColonyId");
+
+                    b.ToTable("Buildings", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Colony", b =>
                 {
                     b.Property<int>("Id")
@@ -36,10 +109,12 @@ namespace Persistence.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedDate");
 
                     b.Property<DateTime?>("DeletedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DeletedDate");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -62,11 +137,23 @@ namespace Persistence.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedDate");
 
                     b.HasKey("Id");
 
                     b.ToTable("Colonies", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.Building", b =>
+                {
+                    b.HasOne("Domain.Entities.Colony", "Colony")
+                        .WithMany("Buildings")
+                        .HasForeignKey("ColonyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Colony");
                 });
 
             modelBuilder.Entity("Domain.Entities.Colony", b =>
@@ -142,6 +229,11 @@ namespace Persistence.Migrations
 
                     b.Navigation("Stats")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Entities.Colony", b =>
+                {
+                    b.Navigation("Buildings");
                 });
 #pragma warning restore 612, 618
         }
