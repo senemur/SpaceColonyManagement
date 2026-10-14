@@ -30,11 +30,6 @@ public class GetListByColonyIdBuildingQuery
             CancellationToken cancellationToken
         )
         {
-            await buildingBusinessRules.ColonyShouldExistWhenSelected(
-                request.ColonyId,
-                cancellationToken
-            );
-
             IPaginate<Building> buildings = await buildingService.GetListAsync(
                 predicate: b => b.ColonyId == request.ColonyId,
                 index: request.Index,

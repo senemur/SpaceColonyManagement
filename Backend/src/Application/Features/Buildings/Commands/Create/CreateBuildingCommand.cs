@@ -27,13 +27,7 @@ public class CreateBuildingCommand : IRequest<CreatedBuildingResponse>
             CancellationToken cancellationToken
         )
         {
-            // 1. Koloni var mı?
-            await buildingBusinessRules.ColonyShouldExistWhenSelected(
-                request.ColonyId,
-                cancellationToken
-            );
-
-            // 2. Aynı kolonide aynı isimde bina var mı?
+            // Aynı kolonide aynı isimde bina var mı?
             await buildingBusinessRules.BuildingNameCannotBeDuplicatedInSameColony(
                 request.ColonyId,
                 request.Name,

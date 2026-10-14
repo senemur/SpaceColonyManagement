@@ -1,31 +1,13 @@
+namespace Application.Features.Buildings.Rules;
+
 using Application.Features.Buildings.Constants;
 using Application.Services.Repositories;
-using Core.Application.Responses;
 using Core.Application.Rules;
 using Core.CrossCuttingConcerns.Exception.Types;
 using Domain.Entities;
 
-namespace Application.Features.Buildings.Rules;
-
-public class BuildingBusinessRules(
-    IBuildingRepository buildingRepository,
-    IColonyRepository colonyRepository
-) : BaseBusinessRules
+public class BuildingBusinessRules(IBuildingRepository buildingRepository) : BaseBusinessRules
 {
-    public async Task ColonyShouldExistWhenSelected(
-        int colonyId,
-        CancellationToken cancellationToken
-    )
-    {
-        bool doesExist = await colonyRepository.AnyAsync(
-            predicate: c => c.Id == colonyId,
-            cancellationToken: cancellationToken
-        );
-
-        if (!doesExist)
-            throw new BusinessException(BuildingsMessages.ColonyNotExists);
-    }
-
     public Task BuildingShouldExistWhenSelected(Building? building)
     {
         if (building == null)
@@ -36,7 +18,7 @@ public class BuildingBusinessRules(
     public async Task BuildingNameCannotBeDuplicatedInSameColony(
         int colonyId,
         string name,
-        CancellationToken cancellationToken
+        CancellationToken cancellationToken = default
     )
     {
         bool doesExist = await buildingRepository.AnyAsync(

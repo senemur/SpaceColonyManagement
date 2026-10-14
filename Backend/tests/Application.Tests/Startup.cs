@@ -8,5 +8,6 @@ public sealed class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddColonyServices();
+        services.AddBuildingServices();
     }
 }
