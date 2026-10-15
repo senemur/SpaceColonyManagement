@@ -1,8 +1,10 @@
 namespace WebAPI.Controllers;
 
 using Application.Features.Buildings.Commands.Create;
+using Application.Features.Buildings.Commands.ToggleStatus;
 using Application.Features.Buildings.Commands.Upgrade;
 using Application.Features.Buildings.Queries.GetListByColonyId;
+using Backend.Application.Features.Buildings.Commands.ToggleStatus;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
@@ -41,6 +43,15 @@ public class BuildingsController : BaseController
                 Index = index,
                 Size = size,
             }
+        );
+        return Ok(result);
+    }
+
+    [HttpPut("{id}/toggle-status")]
+    public async Task<IActionResult> ToggleStatus([FromRoute] int id)
+    {
+        ToggleBuildingStatusResponse result = await Mediator.Send(
+            new ToggleBuildingStatusCommand { Id = id }
         );
         return Ok(result);
     }

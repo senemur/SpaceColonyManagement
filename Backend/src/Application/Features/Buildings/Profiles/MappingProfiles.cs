@@ -1,4 +1,5 @@
 using Application.Features.Buildings.Commands.Create;
+using Application.Features.Buildings.Commands.ToggleStatus;
 using Application.Features.Buildings.Commands.Upgrade;
 using Application.Features.Buildings.Queries.GetListByColonyId;
 using AutoMapper;
@@ -19,5 +20,7 @@ public class MappingProfiles : Profile
 
         CreateMap<Building, GetListByColonyIdBuildingListItemDto>();
         CreateMap<IPaginate<Building>, GetListResponse<GetListByColonyIdBuildingListItemDto>>();
+
+        CreateMap<Building, ToggleBuildingStatusResponse>();
     }
 }
