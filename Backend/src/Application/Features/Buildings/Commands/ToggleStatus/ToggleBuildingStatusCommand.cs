@@ -26,7 +26,7 @@ namespace Backend.Application.Features.Buildings.Commands.ToggleStatus
                     predicate: b => b.Id == request.Id,
                     cancellationToken: cancellationToken
                 );
-    
+
                 await buildingBusinessRules.BuildingShouldExistWhenSelected(building);
 
                 Building existingBuilding = building!;

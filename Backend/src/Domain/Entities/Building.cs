@@ -18,6 +18,7 @@ public class Building : Entity<int>
 
     // Navigation Property
     public virtual Colony? Colony { get; set; }
+    public virtual ICollection<Colonist> WorkersList { get; set; } = new List<Colonist>();
 
     public Building()
     {

@@ -3,6 +3,7 @@ namespace Application;
 using System.Reflection;
 using Application.Services;
 using Application.Services.BuildingService;
+using Application.Services.ColonistService;
 using Core.Application.Rules;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ public static class ApplicationServiceRegistration
         services.AddSubClassesOfType(Assembly.GetExecutingAssembly(), typeof(BaseBusinessRules));
         services.AddScoped<IColonyService, ColonyManager>();
         services.AddScoped<IBuildingService, BuildingManager>();
+        services.AddScoped<IColonistService, ColonistManager>();
 
         return services;
     }
