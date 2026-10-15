@@ -47,7 +47,7 @@ public class BuildingsController : BaseController
         return Ok(result);
     }
 
-    [HttpPut("{id}/toggle-status")]
+    [HttpPut("{id}/toggleStatus")]
     public async Task<IActionResult> ToggleStatus([FromRoute] int id)
     {
         ToggleBuildingStatusResponse result = await Mediator.Send(

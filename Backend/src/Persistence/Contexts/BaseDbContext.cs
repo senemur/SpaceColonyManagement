@@ -12,6 +12,7 @@ public class BaseDbContext(DbContextOptions dbContextOptions, IConfiguration con
 
     public DbSet<Colony> Colonies { get; set; }
     public DbSet<Building> Buildings { get; set; }
+    public DbSet<Colonist> Colonists { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

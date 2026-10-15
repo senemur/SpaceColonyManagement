@@ -27,6 +27,7 @@ public static class PersistenceServiceRegistration
         // Repository Kaydı
         services.AddScoped<IColonyRepository, ColonyRepository>();
         services.AddScoped<IBuildingRepository, BuildingRepository>();
+        services.AddScoped<IColonistRepository, ColonistRepository>();
 
         return services;
     }

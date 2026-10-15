@@ -95,6 +95,59 @@ namespace Persistence.Migrations
                     b.ToTable("Buildings", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.Colonist", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BuildingId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ColonyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<int>("Health")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(100);
+
+                    b.Property<int>("Morale")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(100);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedDate");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BuildingId");
+
+                    b.HasIndex("ColonyId");
+
+                    b.ToTable("Colonists", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Colony", b =>
                 {
                     b.Property<int>("Id")
@@ -152,6 +205,24 @@ namespace Persistence.Migrations
                         .HasForeignKey("ColonyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Colony");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Colonist", b =>
+                {
+                    b.HasOne("Domain.Entities.Building", "Building")
+                        .WithMany("WorkersList")
+                        .HasForeignKey("BuildingId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Domain.Entities.Colony", "Colony")
+                        .WithMany("Colonists")
+                        .HasForeignKey("ColonyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Building");
 
                     b.Navigation("Colony");
                 });
@@ -231,9 +302,16 @@ namespace Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Entities.Building", b =>
+                {
+                    b.Navigation("WorkersList");
+                });
+
             modelBuilder.Entity("Domain.Entities.Colony", b =>
                 {
                     b.Navigation("Buildings");
+
+                    b.Navigation("Colonists");
                 });
 #pragma warning restore 612, 618
         }
