@@ -1,11 +1,31 @@
+export enum BuildingType {
+  Habitat = 1,
+  SolarPanel = 2,
+  Greenhouse = 3,
+  Mine = 4,
+  WaterExtractor = 5,
+  ResearchLab = 6,
+}
+
 export interface Building {
-  id: string;
+  id: number;
+  colonyId: number;
   name: string;
-  type: 'Hab' | 'Farm' | 'Mine' | 'Lab' | 'Solar' | 'Water';
+  buildingType: BuildingType;
   level: number;
-  status: 'Operational' | 'Upgrading' | 'Maintenance' | 'Disabled';
-  production: string;
-  consumption: string;
-  capacity: string;
-  description: string;
+  health: number;
+  workers: number;
+  maxWorkers: number;
+  powerConsumption: number;
+  powerProduction: number;
+  isActive: boolean;
+}
+
+export interface CreateBuildingDto {
+  colonyId: number;
+  name: string;
+  buildingType: BuildingType;
+  maxWorkers?: number;
+  powerConsumption?: number;
+  powerProduction?: number;
 }
