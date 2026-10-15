@@ -39,7 +39,7 @@ export const useBuildings = (colonyId: number = 1) => {
   return useQuery({
     queryKey: ['buildings', colonyId],
     queryFn: () => fetchBuildingsByColonyId(colonyId),
-    refetchInterval: 10000,
+    staleTime: 1000 * 60 * 5, // 5 dakika boyunca taze kabul et
   });
 };
 
@@ -58,6 +58,23 @@ export const useCreateBuilding = (colonyId: number = 1) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createBuilding,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['buildings', colonyId] });
+      queryClient.invalidateQueries({ queryKey: ['colony'] });
+    },
+  });
+};
+
+// Binayı aktif/pasif yap
+export const toggleBuildingStatus = async (id: number): Promise<Building> => {
+  const res = await axiosClient.put<Building>(`/buildings/${id}/toggle-status`);
+  return res.data;
+};
+
+export const useToggleBuildingStatus = (colonyId: number = 1) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: toggleBuildingStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buildings', colonyId] });
       queryClient.invalidateQueries({ queryKey: ['colony'] });

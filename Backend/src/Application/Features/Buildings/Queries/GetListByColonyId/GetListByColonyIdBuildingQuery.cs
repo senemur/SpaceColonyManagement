@@ -1,4 +1,3 @@
-using Application.Features.Buildings.Rules;
 using Application.Services.BuildingService;
 using AutoMapper;
 using Core.Application.Responses;
@@ -17,8 +16,7 @@ public class GetListByColonyIdBuildingQuery
 
     public class GetListByColonyIdBuildingQueryHandler(
         IBuildingService buildingService,
-        IMapper mapper,
-        BuildingBusinessRules buildingBusinessRules
+        IMapper mapper
     )
         : IRequestHandler<
             GetListByColonyIdBuildingQuery,

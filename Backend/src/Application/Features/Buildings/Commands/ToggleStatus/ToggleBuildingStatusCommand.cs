@@ -26,13 +26,14 @@ namespace Backend.Application.Features.Buildings.Commands.ToggleStatus
                     predicate: b => b.Id == request.Id,
                     cancellationToken: cancellationToken
                 );
-
+    
                 await buildingBusinessRules.BuildingShouldExistWhenSelected(building);
 
-                building.IsActive = !building.IsActive;
-                await buildingRepository.UpdateAsync(building, cancellationToken);
+                Building existingBuilding = building!;
+                existingBuilding.IsActive = !existingBuilding.IsActive;
+                await buildingRepository.UpdateAsync(existingBuilding, cancellationToken);
 
-                return mapper.Map<ToggleBuildingStatusResponse>(building);
+                return mapper.Map<ToggleBuildingStatusResponse>(existingBuilding);
             }
         }
     }

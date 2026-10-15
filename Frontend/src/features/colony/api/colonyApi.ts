@@ -50,7 +50,7 @@ export const useColonyById = (id: number) => {
     queryKey: ['colony', id],
     queryFn: () => fetchColonyById(id),
     enabled: id > 0,
-    refetchInterval: 10000,
+    staleTime: 1000 * 60 * 5, // 5 dakika boyunca taze kabul et (gereksiz istek atma)
   });
 };
 
