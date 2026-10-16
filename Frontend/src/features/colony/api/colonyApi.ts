@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { axiosClient } from '@/shared/api/axiosClient';
 import { ColonyStats, ColonyOverview, ColonyZone } from '../types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export const mockColonyStats: ColonyStats = {
   sol: 142,
@@ -62,3 +63,38 @@ export const fetchColonyOverview = async (): Promise<ColonyOverview> => {
 export const useColonyOverview = () => {
   return useColonyById(1);
 };
+
+export interface NextSolResponse {
+  sol: number;
+  powerProduced: number;
+  powerConsumed: number;
+  waterProduced: number;
+  waterConsumed: number;
+  foodProduced: number;
+  foodConsumed: number;
+  mineralsProduced: number;
+  activeColonists: number;
+  workingColonists: number;
+  idleColonists: number;
+  logMessages: string[];
+}
+
+// 1 Gün (Sol) ilerletme isteği
+export const advanceNextSol = async (colonyId: number = 1): Promise<NextSolResponse> => {
+  const res = await axiosClient.post<NextSolResponse>(`/colonies/${colonyId}/nextSol`);
+  return res.data;
+};
+export const useNextSol = (colonyId: number = 1) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => advanceNextSol(colonyId),
+    onSuccess: () => {
+      // Tüm sistemi aynı anda yenile
+      queryClient.invalidateQueries({ queryKey: ['colony'] });
+      queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      queryClient.invalidateQueries({ queryKey: ['colonists'] });
+    },
+  });
+};
+
+  
