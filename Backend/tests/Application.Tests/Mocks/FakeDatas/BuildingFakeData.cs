@@ -17,7 +17,7 @@ public class BuildingFakeData : BaseFakeData<Building, int>
                 buildingType: BuildingType.Habitat,
                 level: 1,
                 health: 100,
-                workers: 4,
+                workers: 1,
                 maxWorkers: 4,
                 powerConsumption: 20,
                 powerProduction: 0,

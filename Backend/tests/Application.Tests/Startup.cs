@@ -9,5 +9,6 @@ public sealed class Startup
     {
         services.AddColonyServices();
         services.AddBuildingServices();
+        services.AddColonistServices();
     }
 }
