@@ -10,4 +10,7 @@ public static class ColonistsMessages
         "Ağır yaralı veya hasta personel (Sağlık <%20) çalışmaya atanamaz.";
     public const string ColonistNameAlreadyExistsInColony =
         "Bu kolonide aynı isimde bir kolonist zaten mevcut.";
+
+    public const string ColonistStaminaTooLow =
+        "Aşırı bitkin personel (Dayanıklılık <%15) dinlenmeden çalışmaya atanamaz.";
 }

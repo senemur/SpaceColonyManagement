@@ -17,6 +17,7 @@ public class ColonistFakeData : BaseFakeData<Colonist, int>
                 role: ColonistRole.Engineer,
                 health: 100,
                 morale: 100,
+                stamina: 100,
                 buildingId: null // Boşta
             ),
             new(
@@ -26,6 +27,7 @@ public class ColonistFakeData : BaseFakeData<Colonist, int>
                 role: ColonistRole.Miner,
                 health: 90,
                 morale: 85,
+                stamina: 85,
                 buildingId: 1 // Habitat Alpha'da görevli
             ),
             new(
@@ -35,6 +37,7 @@ public class ColonistFakeData : BaseFakeData<Colonist, int>
                 role: ColonistRole.Worker,
                 health: 15, // Ağır yaralı (< %20) - Test için
                 morale: 30,
+                stamina: 20,
                 buildingId: null
             ),
         ];

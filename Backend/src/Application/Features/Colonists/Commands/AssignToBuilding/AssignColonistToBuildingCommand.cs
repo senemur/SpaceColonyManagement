@@ -35,6 +35,8 @@ public class AssignColonistToBuildingCommand : IRequest<AssignedColonistToBuildi
             {
                 await colonistBusinessRules.ColonistShouldBeHealthyEnoughToWork(colonist!.Health);
 
+                await colonistBusinessRules.ColonistShouldHaveEnoughStaminaToWork(colonist.Stamina);
+
                 Building? newBuilding = await buildingRepository.GetAsync(
                     predicate: b => b.Id == request.BuildingId.Value,
                     cancellationToken: cancellationToken

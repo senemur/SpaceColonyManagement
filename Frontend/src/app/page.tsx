@@ -27,6 +27,7 @@ import { ColonyZone } from '@/features/colony/types';
 import { COLONY_ZONES, useColonyById } from '@/features/colony/api/colonyApi';
 import { useBuildings } from '@/features/buildings/api/buildingsApi';
 import { BuildingType } from '@/features/buildings/types';
+import { useColonists } from '@/features/colonists/api/colonistsApi';
 
 const MarsGlobeScene = dynamic(() => import('@/features/colony/components/MarsGlobeScene'), {
   ssr: false,
@@ -117,6 +118,15 @@ export default function DashboardHomePage() {
     { name: 'Güneş Paneli Tarlası', level: 4, status: 'Online', output: `+${stats?.power ?? 200} kW Güç/sol`, workers: 'Otomatik', icon: Zap },
     { name: 'Yeraltı Buz Çıkarma Tesisi', level: 2, status: 'Online', output: '+80 L Su/sol', workers: '2/2', icon: Droplet },
   ];
+    // Seçili koloninin gerçek mürettebatını çekiyoruz
+  const { data: colonists } = useColonists(selectedZone.id);
+
+  // Mürettebat canlı hesaplamaları
+  const totalColonists = colonists?.length ?? stats?.population ?? 0;
+  const healthyCount = colonists?.filter(c => c.health >= 70).length ?? totalColonists;
+  const injuredCount = colonists?.filter(c => c.health < 70).length ?? 0;
+  const workingCount = colonists?.filter(c => c.isAssigned).length ?? 0;
+  const idleCount = colonists?.filter(c => !c.isAssigned).length ?? 0;
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 w-full space-y-6">
@@ -376,42 +386,42 @@ export default function DashboardHomePage() {
           )}
         </div>
 
-        {/* Mürettebat Nüfusu (Backend'deki population & maxPopulation'a bağlı) */}
+                {/* Mürettebat Nüfusu (Canlı Kolonist Verilerine Bağlı) */}
         <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <Users className="w-4 h-4 text-sky-400" /> Mürettebat Nüfusu
               </h2>
-              <span className="text-xs font-bold text-sky-400">{stats?.population ?? 0} Personel</span>
+              <span className="text-xs font-bold text-sky-400">{totalColonists} Personel</span>
             </div>
 
             <div className="flex items-center gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
               <div className="w-12 h-12 rounded-full bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 font-bold text-lg">
-                {stats?.population ?? 0}
+                {totalColonists}
               </div>
               <div>
-                <div className="text-sm font-bold text-slate-100">Aktif Kolonist</div>
-                <div className="text-xs text-slate-400">Maksimum Kapasite: {stats?.maxPopulation ?? 0} Kişi</div>
+                <div className="text-sm font-bold text-slate-100">Toplam Mürettebat</div>
+                <div className="text-xs text-slate-400">Kapasite: {stats?.maxPopulation ?? 25} Kişi</div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 flex justify-between">
                 <span className="text-slate-400">Sağlıklı</span>
-                <strong className="text-emerald-400">{stats?.population ?? 0}</strong>
+                <strong className="text-emerald-400">{healthyCount}</strong>
               </div>
               <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 flex justify-between">
                 <span className="text-slate-400">Yaralı/Hasta</span>
-                <strong className="text-amber-400">0</strong>
+                <strong className="text-amber-400">{injuredCount}</strong>
               </div>
               <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 flex justify-between">
                 <span className="text-slate-400">Görevde</span>
-                <strong className="text-sky-400">{stats?.population ?? 0}</strong>
+                <strong className="text-sky-400">{workingCount}</strong>
               </div>
               <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 flex justify-between">
-                <span className="text-slate-400">Boş Kapasite</span>
-                <strong className="text-slate-400">{(stats?.maxPopulation ?? 0) - (stats?.population ?? 0)}</strong>
+                <span className="text-slate-400">Boşta</span>
+                <strong className="text-slate-400">{idleCount}</strong>
               </div>
             </div>
           </div>

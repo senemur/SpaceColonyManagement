@@ -33,6 +33,7 @@ public class CreateColonistCommand : IRequest<CreatedColonistResponse>
             Colonist colonist = mapper.Map<Colonist>(request);
             colonist.Health = 100;
             colonist.Morale = 100;
+            colonist.Stamina = 100;
             colonist.BuildingId = null;
 
             await colonistRepository.AddAsync(colonist);

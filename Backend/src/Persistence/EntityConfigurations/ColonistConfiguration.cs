@@ -19,6 +19,7 @@ public class ColonistConfiguration : IEntityTypeConfiguration<Colonist>
         builder.Property(c => c.Role).IsRequired();
         builder.Property(c => c.Health).IsRequired().HasDefaultValue(100);
         builder.Property(c => c.Morale).IsRequired().HasDefaultValue(100);
+        builder.Property(c => c.Stamina).IsRequired().HasDefaultValue(100);
 
         // Colony ile One-to-Many İlişkisi
         builder

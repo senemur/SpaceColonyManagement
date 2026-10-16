@@ -11,6 +11,7 @@ public class Colonist : Entity<int>
     public ColonistRole Role { get; set; }
     public int Health { get; set; } // 0 - 100
     public int Morale { get; set; } // 0 - 100
+    public int Stamina { get; set; } // 0 - 100 (Dayanıklılık / Enerji)
     public bool IsAssigned => BuildingId.HasValue;
 
     // Navigation Properties
@@ -21,6 +22,7 @@ public class Colonist : Entity<int>
     {
         Health = 100;
         Morale = 100;
+        Stamina = 100;
     }
 
     public Colonist(
@@ -29,6 +31,7 @@ public class Colonist : Entity<int>
         ColonistRole role,
         int health = 100,
         int morale = 100,
+        int stamina = 100,
         int? buildingId = null
     )
     {
@@ -37,6 +40,7 @@ public class Colonist : Entity<int>
         Role = role;
         Health = health;
         Morale = morale;
+        Stamina = stamina;
         BuildingId = buildingId;
     }
 
@@ -47,6 +51,7 @@ public class Colonist : Entity<int>
         ColonistRole role,
         int health = 100,
         int morale = 100,
+        int stamina = 100,
         int? buildingId = null
     )
         : base(id)
@@ -56,6 +61,7 @@ public class Colonist : Entity<int>
         Role = role;
         Health = health;
         Morale = morale;
+        Stamina = stamina;
         BuildingId = buildingId;
     }
 }

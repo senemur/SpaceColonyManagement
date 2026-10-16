@@ -50,4 +50,11 @@ public class ColonistBusinessRules(IColonistRepository colonistRepository) : Bas
         if (doesExist)
             throw new BusinessException(ColonistsMessages.ColonistNameAlreadyExistsInColony);
     }
+
+    public Task ColonistShouldHaveEnoughStaminaToWork(int stamina)
+    {
+        if (stamina < 15)
+            throw new BusinessException(ColonistsMessages.ColonistStaminaTooLow);
+        return Task.CompletedTask;
+    }
 }
