@@ -107,7 +107,10 @@ public class AssignColonistToBuildingTests : ColonistMockRepository
     public async Task Handle_WhenBuildingCapacityIsFull_ShouldThrowBusinessException()
     {
         // Arrange (Building Id: 1'in kapasitesini geçici olarak dolduruyoruz)
-        var building = _buildingMockRepository.Object.GetAsync(b => b.Id == 1).Result;
+        var building = await _buildingMockRepository.Object.GetAsync(
+            b => b.Id == 1,
+            cancellationToken: TestContext.Current.CancellationToken
+        );
         building!.Workers = building.MaxWorkers; // 4/4 dolu yap
 
         _command.ColonistId = 1;
