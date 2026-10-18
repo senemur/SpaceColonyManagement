@@ -12,7 +12,7 @@ The game starts on **Mars**. The player manages a colony, its resources, buildin
 
 The player starts with a small colony on Mars.
 
-The initial colony has:
+The initial colony has:(For example)
 
 * 10 colonists
 * Food
