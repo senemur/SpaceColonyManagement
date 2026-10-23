@@ -63,3 +63,4 @@ TestResults/
 
 # Local development settings
 appsettings.Development.json
+appsettings.json
