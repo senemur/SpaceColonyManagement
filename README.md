@@ -1,4 +1,4 @@
-﻿# 🚀 Space Colony Management (IT IS CONTINUING)
+# 🚀 Space Colony Management (IT IS CONTINUING)
 
 A 3D space colony management strategy game built with **ASP.NET Core (.NET 9) Backend (CQRS Pattern)** and **Next.js 16 (React 19, TypeScript, Three.js 3D Engine, TanStack Query, Tailwind CSS v4)** frontend.
 
@@ -469,11 +469,11 @@ Frontend/src/
 
 ### Sprint 8 — Random Events
 
-* [ ] Event generation
-* [ ] Event duration
-* [ ] Positive events
-* [ ] Negative events
-* [ ] Event history
+* [x] Event generation
+* [x] Event duration
+* [x] Positive events
+* [x] Negative events
+* [x] Event history
 
 ### Sprint 9 — Exploration
 
@@ -516,10 +516,8 @@ The project should remain understandable while gradually becoming more complex.
 
 ## 🚧 Current Status
 
-**Sprint 0 — Completed**
+**Sprint 8 — Completed**
 
-The game rules and initial architecture have been designed.
+Random events system implemented across backend and frontend (probabilistic triggering, duration tracking, resource & production modifiers, event history log).
 
-**Next: Sprint 1 — Project Setup**
-
-The next step is to create the .NET solution and establish the project structure.
+**Next: Sprint 9 — Exploration**

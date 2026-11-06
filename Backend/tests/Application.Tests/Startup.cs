@@ -11,5 +11,6 @@ public sealed class Startup
         services.AddBuildingServices();
         services.AddColonistServices();
         services.AddResearchServices();
+        services.AddEventServices();
     }
 }

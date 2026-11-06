@@ -16,6 +16,7 @@ public class Colony : Entity<int>
     public virtual ICollection<Building> Buildings { get; set; } = new List<Building>();
     public virtual ICollection<Colonist> Colonists { get; set; } = new List<Colonist>();
     public virtual ICollection<Technology> Technologies { get; set; } = new List<Technology>();
+    public virtual ICollection<ColonyEvent> Events { get; set; } = new List<ColonyEvent>();
 
     public Colony()
         : base() { }

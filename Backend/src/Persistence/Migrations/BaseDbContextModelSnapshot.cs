@@ -203,6 +203,75 @@ namespace Persistence.Migrations
                     b.ToTable("Colonies", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.ColonyEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ColonyId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("CreatedDate");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("DeletedDate");
+
+                    b.Property<int>("DurationInSols")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("EffectType")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("EffectValue")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("RemainingSols")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<int>("Sol")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("UpdatedDate");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ColonyId");
+
+                    b.ToTable("ColonyEvents", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Technology", b =>
                 {
                     b.Property<int>("Id")
@@ -390,6 +459,17 @@ namespace Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Domain.Entities.ColonyEvent", b =>
+                {
+                    b.HasOne("Domain.Entities.Colony", "Colony")
+                        .WithMany("Events")
+                        .HasForeignKey("ColonyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Colony");
+                });
+
             modelBuilder.Entity("Domain.Entities.Technology", b =>
                 {
                     b.HasOne("Domain.Entities.Colony", "Colony")
@@ -411,6 +491,8 @@ namespace Persistence.Migrations
                     b.Navigation("Buildings");
 
                     b.Navigation("Colonists");
+
+                    b.Navigation("Events");
 
                     b.Navigation("Technologies");
                 });

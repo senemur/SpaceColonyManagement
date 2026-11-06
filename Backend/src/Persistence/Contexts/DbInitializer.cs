@@ -80,6 +80,37 @@ public static class DbInitializer
                 BuildingId = null
             };
             context.Colonists.AddRange(colonist1, colonist2);
+
+            var event1 = new ColonyEvent
+            {
+                Id = 1,
+                ColonyId = 1,
+                Sol = 1,
+                Title = "Ares Prime Üssü Kuruldu",
+                Message = "Mars Valles Marineris kanyonunda ilk yaşam habitatı ve güneş santrali başarıyla faaliyete geçti.",
+                Type = EventType.Success,
+                EffectType = EventEffectType.None,
+                EffectValue = 0,
+                DurationInSols = 0,
+                RemainingSols = 0,
+                IsActive = false
+            };
+            var event2 = new ColonyEvent
+            {
+                Id = 2,
+                ColonyId = 1,
+                Sol = 2,
+                Title = "İlk Mürettebat İnişi",
+                Message = "Komutan John Ares ve Dr. Elena Gilbert üsse güvenle iniş yaptı. Koloni yaşam destek sistemleri stabil.",
+                Type = EventType.Info,
+                EffectType = EventEffectType.None,
+                EffectValue = 0,
+                DurationInSols = 0,
+                RemainingSols = 0,
+                IsActive = false
+            };
+            context.ColonyEvents.AddRange(event1, event2);
+
             context.SaveChanges();
         }
     }

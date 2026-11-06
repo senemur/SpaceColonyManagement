@@ -18,6 +18,14 @@ public static class PersistenceServiceRegistration
         string connectionStringName = "BaseDb";
         string? connectionString = configuration.GetConnectionString(connectionStringName);
 
+        // EF Core Migration / Design-Time durumunda her zaman Npgsql kullan
+        if (EF.IsDesignTime)
+        {
+            services.AddDbContext<BaseDbContext>(options => options.UseNpgsql(connectionString));
+            RegisterRepositories(services);
+            return services;
+        }
+
         bool useInMemory = configuration.GetValue<bool>("UseInMemoryDatabase");
 
         if (!useInMemory && !string.IsNullOrWhiteSpace(connectionString) && !connectionString.Contains("your_host"))
@@ -46,12 +54,17 @@ public static class PersistenceServiceRegistration
             services.AddDbContext<BaseDbContext>(options => options.UseInMemoryDatabase("SpaceColonyInMemoryDb"));
         }
 
-        // Repository Kayıtları
+        RegisterRepositories(services);
+
+        return services;
+    }
+
+    private static void RegisterRepositories(IServiceCollection services)
+    {
         services.AddScoped<IColonyRepository, ColonyRepository>();
         services.AddScoped<IBuildingRepository, BuildingRepository>();
         services.AddScoped<IColonistRepository, ColonistRepository>();
         services.AddScoped<ITechnologyRepository, TechnologyRepository>();
-
-        return services;
+        services.AddScoped<IColonyEventRepository, ColonyEventRepository>();
     }
 }

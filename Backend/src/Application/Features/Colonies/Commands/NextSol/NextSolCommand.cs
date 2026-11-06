@@ -1,6 +1,7 @@
 namespace Application.Features.Colonies.Commands.NextSol;
 
 using Application.Features.Colonies.Rules;
+using Application.Features.Events.Constants;
 using Application.Services.Repositories;
 using Core.CrossCuttingConcerns.Exception.Types;
 using Domain.Entities;
@@ -16,6 +17,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
         IBuildingRepository buildingRepository,
         IColonistRepository colonistRepository,
         ITechnologyRepository technologyRepository,
+        IColonyEventRepository colonyEventRepository,
         ColonyBusinessRules colonyBusinessRules
     ) : IRequestHandler<NextSolCommand, NextSolResponse>
     {
@@ -31,7 +33,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
             );
             await colonyBusinessRules.ColonyShouldExistWhenRequested(colony);
 
-            // 2. Koloninin binalarını, kolonistlerini ve araştırmalarını çek
+            // 2. Koloninin binalarını, kolonistlerini, araştırmalarını ve aktif olaylarını çek
             var buildingsData = await buildingRepository.GetListAsync(
                 predicate: b => b.ColonyId == request.ColonyId,
                 size: 100,
@@ -53,6 +55,13 @@ public class NextSolCommand : IRequest<NextSolResponse>
             );
             var technologies = techsData.Items.ToList();
 
+            var activeEventsData = await colonyEventRepository.GetListAsync(
+                predicate: e => e.ColonyId == request.ColonyId && e.IsActive,
+                size: 50,
+                cancellationToken: cancellationToken
+            );
+            var activeEvents = activeEventsData.Items.ToList();
+
             var response = new NextSolResponse();
             var stats = colony!.Stats;
 
@@ -63,14 +72,65 @@ public class NextSolCommand : IRequest<NextSolResponse>
 
             var activeBuildings = buildings.Where(b => b.IsActive).ToList();
 
-            // 3. AKTİF ARAŞTIRMA İLERLEMESİ (Sprint 7: Research duration & progression)
+            // 3. SÜRELİ OLAYLARIN YÖNETİMİ (Sprint 8: Event duration & active events)
+            foreach (var activeEvent in activeEvents.ToList())
+            {
+                activeEvent.RemainingSols -= 1;
+                if (activeEvent.RemainingSols <= 0)
+                {
+                    activeEvent.IsActive = false;
+                    await colonyEventRepository.UpdateAsync(activeEvent);
+                    activeEvents.Remove(activeEvent);
+
+                    response.LogMessages.Add($"🌤️ Etki Sona Erdi: '{activeEvent.Title}' tamamlandı. Sistemler normale döndü.");
+
+                    var resolveEvent = new ColonyEvent(
+                        colonyId: request.ColonyId,
+                        sol: stats.Sol,
+                        title: $"{activeEvent.Title} Sona Erdi",
+                        message: "Mars yüzeyindeki olay süresi tamamlandı. Koloni operasyonları normal çalışma seyrine döndü.",
+                        type: EventType.Info
+                    );
+                    await colonyEventRepository.AddAsync(resolveEvent);
+                }
+                else
+                {
+                    await colonyEventRepository.UpdateAsync(activeEvent);
+                    response.LogMessages.Add($"⚠️ Devam Eden Olay: '{activeEvent.Title}' (Kalan Süre: {activeEvent.RemainingSols} Sol).");
+                }
+            }
+
+            // 4. RASTGELE YENİ MARS OLAYI TETİKLEME (Sprint 8: Event generation)
+            var newEvent = EventGenerator.TryGenerateRandomEvent(request.ColonyId, stats.Sol, activeEvents, colony);
+            if (newEvent != null)
+            {
+                await colonyEventRepository.AddAsync(newEvent);
+                response.LogMessages.Add($"📢 YENİ OLAY: {newEvent.Title} - {newEvent.Message}");
+
+                if (newEvent.IsActive)
+                {
+                    activeEvents.Add(newEvent);
+                }
+
+                // Kolonist sağlığına anlık etki eden olaylar
+                if (newEvent.EffectType == EventEffectType.ColonistHealthEffect)
+                {
+                    foreach (var colonist in colonists)
+                    {
+                        colonist.Health = Math.Clamp(colonist.Health + (int)newEvent.EffectValue, 10, 100);
+                        colonist.Morale = Math.Clamp(colonist.Morale + (int)newEvent.EffectValue, 10, 100);
+                        await colonistRepository.UpdateAsync(colonist);
+                    }
+                }
+            }
+
+            // 5. AKTİF ARAŞTIRMA İLERLEMESİ (Sprint 7: Research duration & progression)
             var activeResearch = technologies.FirstOrDefault(t => t.Status == ResearchStatus.InProgress);
             if (activeResearch != null)
             {
                 int researchLabs = activeBuildings.Count(b => b.BuildingType == BuildingType.ResearchLab);
                 int activeScientists = colonists.Count(c => c.Role == ColonistRole.Scientist && c.IsAssigned);
 
-                // Temel ilerleme (DurationInSols gün sayısına göre paylaştırılır)
                 decimal baseProgress = 100m / Math.Max(1, activeResearch.DurationInSols);
                 decimal labMultiplier = 1m + (researchLabs * 0.15m) + (activeScientists * 0.05m);
                 decimal progressIncrement = baseProgress * labMultiplier;
@@ -83,7 +143,6 @@ public class NextSolCommand : IRequest<NextSolResponse>
                     activeResearch.Status = ResearchStatus.Completed;
                     await technologyRepository.UpdateAsync(activeResearch);
 
-                    // Bu araştırmayı ön koşul olarak bekleyen kilitli teknolojileri aç
                     var unlockedTechs = technologies
                         .Where(t => t.Status == ResearchStatus.Locked && t.PrerequisiteCode == activeResearch.Code)
                         .ToList();
@@ -108,16 +167,27 @@ public class NextSolCommand : IRequest<NextSolResponse>
                 }
             }
 
-            // 4. BİLİMSEL BONUSLARIN HESAPLANMASI (Sprint 7: Research bonuses)
+            // 6. BİLİMSEL BONUSLAR VE OLAY ETKİLERİNİN HESAPLANMASI
             var completedTechs = technologies.Where(t => t.Status == ResearchStatus.Completed).ToList();
-            decimal powerBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.PowerProduction).Sum(t => t.BonusValue) / 100m);
-            decimal foodBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.FoodProduction).Sum(t => t.BonusValue) / 100m);
-            decimal waterBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.WaterProduction).Sum(t => t.BonusValue) / 100m);
-            decimal mineralBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.MineralProduction).Sum(t => t.BonusValue) / 100m);
-            decimal oxygenBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.OxygenProduction).Sum(t => t.BonusValue) / 100m);
+            decimal techPowerBonus = completedTechs.Where(t => t.BonusType == ResearchBonusType.PowerProduction).Sum(t => t.BonusValue);
+            decimal techFoodBonus = completedTechs.Where(t => t.BonusType == ResearchBonusType.FoodProduction).Sum(t => t.BonusValue);
+            decimal techWaterBonus = completedTechs.Where(t => t.BonusType == ResearchBonusType.WaterProduction).Sum(t => t.BonusValue);
+            decimal techMineralBonus = completedTechs.Where(t => t.BonusType == ResearchBonusType.MineralProduction).Sum(t => t.BonusValue);
+            decimal techOxygenBonus = completedTechs.Where(t => t.BonusType == ResearchBonusType.OxygenProduction).Sum(t => t.BonusValue);
 
-            // 5. ENERJİ HESAPLAMASI (Bonuslar dahil)
-            decimal totalPowerProduced = activeBuildings.Sum(b => (decimal)b.PowerProduction) * powerBonusMultiplier;
+            // Aktif olayların üretim çarpanları (Sprint 8: Positive & Negative Event effects)
+            decimal eventPowerModifier = activeEvents.Where(e => e.IsActive && e.EffectType == EventEffectType.PowerProductionModifier).Sum(e => e.EffectValue);
+            decimal eventFoodModifier = activeEvents.Where(e => e.IsActive && e.EffectType == EventEffectType.FoodProductionModifier).Sum(e => e.EffectValue);
+            decimal eventWaterModifier = activeEvents.Where(e => e.IsActive && e.EffectType == EventEffectType.WaterProductionModifier).Sum(e => e.EffectValue);
+
+            decimal powerMultiplier = Math.Max(0.1m, 1m + ((techPowerBonus + eventPowerModifier) / 100m));
+            decimal foodMultiplier = Math.Max(0.1m, 1m + ((techFoodBonus + eventFoodModifier) / 100m));
+            decimal waterMultiplier = Math.Max(0.1m, 1m + ((techWaterBonus + eventWaterModifier) / 100m));
+            decimal mineralMultiplier = Math.Max(0.1m, 1m + (techMineralBonus / 100m));
+            decimal oxygenMultiplier = Math.Max(0.1m, 1m + (techOxygenBonus / 100m));
+
+            // 7. ENERJİ HESAPLAMASI (Bonuslar ve Olaylar Dahil)
+            decimal totalPowerProduced = activeBuildings.Sum(b => (decimal)b.PowerProduction) * powerMultiplier;
             decimal totalPowerConsumed = activeBuildings.Sum(b => (decimal)b.PowerConsumption);
 
             response.PowerProduced = totalPowerProduced;
@@ -133,7 +203,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
 
             bool hasPower = stats.Power > 0 || totalPowerProduced >= totalPowerConsumed;
 
-            // 6. BİNA ÜRETİMLERİ (Enerji varsa çalışırlar + Araştırma Bonusu)
+            // 8. BİNA ÜRETİMLERİ (Enerji varsa çalışırlar + Araştırma/Olay Bonusları)
             decimal waterProduced = 0;
             decimal foodProduced = 0;
             decimal mineralsProduced = 0;
@@ -146,13 +216,13 @@ public class NextSolCommand : IRequest<NextSolResponse>
                     switch (b.BuildingType)
                     {
                         case BuildingType.WaterExtractor:
-                            waterProduced += (25 * b.Level) * waterBonusMultiplier;
+                            waterProduced += (25 * b.Level) * waterMultiplier;
                             break;
 
                         case BuildingType.Greenhouse:
                             if (b.Workers > 0 && stats.Water >= (5 * b.Workers))
                             {
-                                foodProduced += (15 * b.Workers * b.Level) * foodBonusMultiplier;
+                                foodProduced += (15 * b.Workers * b.Level) * foodMultiplier;
                                 waterConsumedByFarms += (5 * b.Workers);
                             }
                             break;
@@ -160,7 +230,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
                         case BuildingType.Mine:
                             if (b.Workers > 0)
                             {
-                                mineralsProduced += (10 * b.Workers * b.Level) * mineralBonusMultiplier;
+                                mineralsProduced += (10 * b.Workers * b.Level) * mineralMultiplier;
                             }
                             break;
                     }
@@ -175,7 +245,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
             response.FoodProduced = foodProduced;
             response.MineralsProduced = mineralsProduced;
 
-            // 7. MÜRETTEBAT TÜKETİMİ & SAĞLIK/STAMINA
+            // 9. MÜRETTEBAT TÜKETİMİ & SAĞLIK/STAMINA
             int colonistCount = colonists.Count;
             response.ActiveColonists = colonistCount;
             response.WorkingColonists = colonists.Count(c => c.IsAssigned);
@@ -192,9 +262,8 @@ public class NextSolCommand : IRequest<NextSolResponse>
             stats.Food -= dailyFoodNeeded;
             stats.Oxygen -= dailyOxygenNeeded;
 
-            // Oksijen üretimi (Habitatlar aktifse oksijen dengelenir + Yaşam Destek Bonusu)
             int activeHabitats = activeBuildings.Count(b => b.BuildingType == BuildingType.Habitat);
-            stats.Oxygen += (activeHabitats * 15) * oxygenBonusMultiplier;
+            stats.Oxygen += (activeHabitats * 15) * oxygenMultiplier;
 
             if (stats.Oxygen > stats.MaxOxygen) stats.Oxygen = stats.MaxOxygen;
             if (stats.Water > stats.MaxWater) stats.Water = stats.MaxWater;
