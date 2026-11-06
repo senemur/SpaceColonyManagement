@@ -73,9 +73,6 @@ export default function ResearchPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-slate-100">Mars Teknoloji & Araştırma Ağacı</h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30">
-                Sprint 7
-              </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
               Yeni teknolojiler araştırarak üretim verimliliğinizi katlayın ve bina inşa maliyetlerini düşürün.
