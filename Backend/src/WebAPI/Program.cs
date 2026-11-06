@@ -1,5 +1,6 @@
 using Application;
 using Persistence;
+using Persistence.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,16 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Otomatik Veritabanı Başlatma (InMemory veya eksik tablo kontrolü)
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<BaseDbContext>();
+    if (dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
+    {
+        DbInitializer.Initialize(dbContext);
+    }
+}
 
 // Swagger UI Aktifleştirme
 if (app.Environment.IsDevelopment())

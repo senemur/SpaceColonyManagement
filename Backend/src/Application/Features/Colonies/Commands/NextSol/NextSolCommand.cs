@@ -15,6 +15,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
         IColonyRepository colonyRepository,
         IBuildingRepository buildingRepository,
         IColonistRepository colonistRepository,
+        ITechnologyRepository technologyRepository,
         ColonyBusinessRules colonyBusinessRules
     ) : IRequestHandler<NextSolCommand, NextSolResponse>
     {
@@ -30,7 +31,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
             );
             await colonyBusinessRules.ColonyShouldExistWhenRequested(colony);
 
-            // 2. Koloninin binalarını ve kolonistlerini çek
+            // 2. Koloninin binalarını, kolonistlerini ve araştırmalarını çek
             var buildingsData = await buildingRepository.GetListAsync(
                 predicate: b => b.ColonyId == request.ColonyId,
                 size: 100,
@@ -45,6 +46,13 @@ public class NextSolCommand : IRequest<NextSolResponse>
             );
             var colonists = colonistsData.Items;
 
+            var techsData = await technologyRepository.GetListAsync(
+                predicate: t => t.ColonyId == request.ColonyId,
+                size: 50,
+                cancellationToken: cancellationToken
+            );
+            var technologies = techsData.Items.ToList();
+
             var response = new NextSolResponse();
             var stats = colony!.Stats;
 
@@ -53,9 +61,63 @@ public class NextSolCommand : IRequest<NextSolResponse>
             response.Sol = stats.Sol;
             response.LogMessages.Add($"Sol {stats.Sol} başladı. Güneş panelleri ve üretim üniteleri kalibre ediliyor.");
 
-            // 3. ENERJİ HESAPLAMASI
             var activeBuildings = buildings.Where(b => b.IsActive).ToList();
-            decimal totalPowerProduced = activeBuildings.Sum(b => (decimal)b.PowerProduction);
+
+            // 3. AKTİF ARAŞTIRMA İLERLEMESİ (Sprint 7: Research duration & progression)
+            var activeResearch = technologies.FirstOrDefault(t => t.Status == ResearchStatus.InProgress);
+            if (activeResearch != null)
+            {
+                int researchLabs = activeBuildings.Count(b => b.BuildingType == BuildingType.ResearchLab);
+                int activeScientists = colonists.Count(c => c.Role == ColonistRole.Scientist && c.IsAssigned);
+
+                // Temel ilerleme (DurationInSols gün sayısına göre paylaştırılır)
+                decimal baseProgress = 100m / Math.Max(1, activeResearch.DurationInSols);
+                decimal labMultiplier = 1m + (researchLabs * 0.15m) + (activeScientists * 0.05m);
+                decimal progressIncrement = baseProgress * labMultiplier;
+
+                activeResearch.Progress = Math.Min(100m, activeResearch.Progress + progressIncrement);
+
+                if (activeResearch.Progress >= 100m)
+                {
+                    activeResearch.Progress = 100m;
+                    activeResearch.Status = ResearchStatus.Completed;
+                    await technologyRepository.UpdateAsync(activeResearch);
+
+                    // Bu araştırmayı ön koşul olarak bekleyen kilitli teknolojileri aç
+                    var unlockedTechs = technologies
+                        .Where(t => t.Status == ResearchStatus.Locked && t.PrerequisiteCode == activeResearch.Code)
+                        .ToList();
+
+                    foreach (var unlocked in unlockedTechs)
+                    {
+                        unlocked.Status = ResearchStatus.Available;
+                        await technologyRepository.UpdateAsync(unlocked);
+                    }
+
+                    response.LogMessages.Add(
+                        $"🎉 BİLİMSEL BULUŞ: '{activeResearch.Name}' araştırması tamamlandı! " +
+                        $"Etki: +%{activeResearch.BonusValue:0} {activeResearch.BonusType} bonusu devreye girdi."
+                    );
+                }
+                else
+                {
+                    await technologyRepository.UpdateAsync(activeResearch);
+                    response.LogMessages.Add(
+                        $"🔬 Laboratuvar: '{activeResearch.Name}' araştırması sürüyor (%{activeResearch.Progress:0.0} tamamlandı)."
+                    );
+                }
+            }
+
+            // 4. BİLİMSEL BONUSLARIN HESAPLANMASI (Sprint 7: Research bonuses)
+            var completedTechs = technologies.Where(t => t.Status == ResearchStatus.Completed).ToList();
+            decimal powerBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.PowerProduction).Sum(t => t.BonusValue) / 100m);
+            decimal foodBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.FoodProduction).Sum(t => t.BonusValue) / 100m);
+            decimal waterBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.WaterProduction).Sum(t => t.BonusValue) / 100m);
+            decimal mineralBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.MineralProduction).Sum(t => t.BonusValue) / 100m);
+            decimal oxygenBonusMultiplier = 1m + (completedTechs.Where(t => t.BonusType == ResearchBonusType.OxygenProduction).Sum(t => t.BonusValue) / 100m);
+
+            // 5. ENERJİ HESAPLAMASI (Bonuslar dahil)
+            decimal totalPowerProduced = activeBuildings.Sum(b => (decimal)b.PowerProduction) * powerBonusMultiplier;
             decimal totalPowerConsumed = activeBuildings.Sum(b => (decimal)b.PowerConsumption);
 
             response.PowerProduced = totalPowerProduced;
@@ -71,7 +133,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
 
             bool hasPower = stats.Power > 0 || totalPowerProduced >= totalPowerConsumed;
 
-            // 4. BİNA ÜRETİMLERİ (Enerji varsa çalışırlar)
+            // 6. BİNA ÜRETİMLERİ (Enerji varsa çalışırlar + Araştırma Bonusu)
             decimal waterProduced = 0;
             decimal foodProduced = 0;
             decimal mineralsProduced = 0;
@@ -84,13 +146,13 @@ public class NextSolCommand : IRequest<NextSolResponse>
                     switch (b.BuildingType)
                     {
                         case BuildingType.WaterExtractor:
-                            waterProduced += (25 * b.Level);
+                            waterProduced += (25 * b.Level) * waterBonusMultiplier;
                             break;
 
                         case BuildingType.Greenhouse:
                             if (b.Workers > 0 && stats.Water >= (5 * b.Workers))
                             {
-                                foodProduced += (15 * b.Workers * b.Level);
+                                foodProduced += (15 * b.Workers * b.Level) * foodBonusMultiplier;
                                 waterConsumedByFarms += (5 * b.Workers);
                             }
                             break;
@@ -98,7 +160,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
                         case BuildingType.Mine:
                             if (b.Workers > 0)
                             {
-                                mineralsProduced += (10 * b.Workers * b.Level);
+                                mineralsProduced += (10 * b.Workers * b.Level) * mineralBonusMultiplier;
                             }
                             break;
                     }
@@ -113,13 +175,12 @@ public class NextSolCommand : IRequest<NextSolResponse>
             response.FoodProduced = foodProduced;
             response.MineralsProduced = mineralsProduced;
 
-            // 5. MÜRETTEBAT TÜKETİMİ & SAĞLIK/STAMINA
+            // 7. MÜRETTEBAT TÜKETİMİ & SAĞLIK/STAMINA
             int colonistCount = colonists.Count;
             response.ActiveColonists = colonistCount;
             response.WorkingColonists = colonists.Count(c => c.IsAssigned);
             response.IdleColonists = colonists.Count(c => !c.IsAssigned);
 
-            // Günlük kişi başı tüketim
             decimal dailyWaterNeeded = colonistCount * 2;
             decimal dailyFoodNeeded = colonistCount * 2;
             decimal dailyOxygenNeeded = colonistCount * 1;
@@ -131,9 +192,10 @@ public class NextSolCommand : IRequest<NextSolResponse>
             stats.Food -= dailyFoodNeeded;
             stats.Oxygen -= dailyOxygenNeeded;
 
-            // Oksijen üretimi (Habitatlar aktifse oksijen dengelenir)
+            // Oksijen üretimi (Habitatlar aktifse oksijen dengelenir + Yaşam Destek Bonusu)
             int activeHabitats = activeBuildings.Count(b => b.BuildingType == BuildingType.Habitat);
-            stats.Oxygen += (activeHabitats * 15);
+            stats.Oxygen += (activeHabitats * 15) * oxygenBonusMultiplier;
+
             if (stats.Oxygen > stats.MaxOxygen) stats.Oxygen = stats.MaxOxygen;
             if (stats.Water > stats.MaxWater) stats.Water = stats.MaxWater;
             if (stats.Food > stats.MaxFood) stats.Food = stats.MaxFood;
@@ -153,18 +215,15 @@ public class NextSolCommand : IRequest<NextSolResponse>
 
             foreach (var colonist in colonists)
             {
-                // Sağlık ve Moral Etkileri
                 if (isSuffocating) colonist.Health = Math.Max(0, colonist.Health - 30);
                 else if (isDehydrated) colonist.Health = Math.Max(0, colonist.Health - 15);
                 else if (isStarving) colonist.Health = Math.Max(0, colonist.Health - 10);
                 else
                 {
-                    // Kaynaklar tamsa iyileşme
                     colonist.Health = Math.Min(100, colonist.Health + 5);
                     colonist.Morale = Math.Min(100, colonist.Morale + 5);
                 }
 
-                // Stamina Dinamiği: Çalışan yorulur, boşta olan dinlenir
                 if (colonist.IsAssigned)
                 {
                     colonist.Stamina = Math.Max(0, colonist.Stamina - 15);
@@ -191,9 +250,9 @@ public class NextSolCommand : IRequest<NextSolResponse>
 
             await colonyRepository.UpdateAsync(colony);
 
-            if (foodProduced > 0) response.LogMessages.Add($"Hidroponik seralardan +{foodProduced} kg besin hasat edildi.");
-            if (waterProduced > 0) response.LogMessages.Add($"Yeraltı buz tesislerinden +{waterProduced} L su çıkarıldı.");
-            if (mineralsProduced > 0) response.LogMessages.Add($"Maden ocaklarından +{mineralsProduced} t metal ve mineral çıkarıldı.");
+            if (foodProduced > 0) response.LogMessages.Add($"Hidroponik seralardan +{foodProduced:0} kg besin hasat edildi.");
+            if (waterProduced > 0) response.LogMessages.Add($"Yeraltı buz tesislerinden +{waterProduced:0} L su çıkarıldı.");
+            if (mineralsProduced > 0) response.LogMessages.Add($"Maden ocaklarından +{mineralsProduced:0} t metal ve mineral çıkarıldı.");
 
             return response;
         }

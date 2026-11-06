@@ -1,35 +1,72 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { axiosClient } from '@/shared/api/axiosClient';
 
-export interface TechNode {
-  id: string;
+export interface Technology {
+  id: number;
+  colonyId: number;
+  code: string;
   name: string;
-  category: 'Enerji' | 'Biyoloji' | 'Madencilik' | 'Uzay';
-  cost: number;
-  progress: number;
-  status: 'Tamamlandı' | 'Araştırılıyor' | 'Kilitli';
   description: string;
+  category: number;
+  categoryName: string;
+  mineralCost: number;
+  creditCost: number;
+  durationInSols: number;
+  progress: number;
+  status: number; // 1: Locked, 2: Available, 3: InProgress, 4: Completed
+  statusName: string;
+  prerequisiteCode?: string | null;
+  prerequisiteName?: string | null;
+  bonusType: number;
+  bonusTypeName: string;
+  bonusValue: number;
+  bonusDescription: string;
 }
 
-export const mockTechs: TechNode[] = [
-  { id: 't1', name: 'Derin Buz Sondajı', category: 'Biyoloji', cost: 100, progress: 100, status: 'Tamamlandı', description: 'Yeraltı donmuş su kaynaklarını hızla çıkarma teknolojisi.' },
-  { id: 't2', name: 'Füzyon Reaktörü Prototipi', category: 'Enerji', cost: 250, progress: 45, status: 'Araştırılıyor', description: 'Güneş fırtınalarında kesintisiz enerji sağlayan reaktör.' },
-  { id: 't3', name: 'Otomatik Maden Roverları', category: 'Madencilik', cost: 180, progress: 0, status: 'Kilitli', description: 'İnsan müdahalesi olmadan cevher toplayan AI roverlar.' },
-  { id: 't4', name: 'Mars Toprağı Gübreleme', category: 'Biyoloji', cost: 150, progress: 0, status: 'Kilitli', description: 'Kızıl gezegen toprağında bitki verimini 2 katına çıkarır.' },
-];
+export interface StartResearchDto {
+  colonyId: number;
+  technologyId: number;
+}
 
-export const fetchTechTree = async (): Promise<TechNode[]> => {
-  try {
-    const res = await axiosClient.get<TechNode[]>('/research/tech-tree');
-    return res.data;
-  } catch {
-    return mockTechs;
-  }
+export interface StartResearchResponse {
+  technologyId: number;
+  code: string;
+  name: string;
+  status: number;
+  statusName: string;
+  progress: number;
+  durationInSols: number;
+  remainingMinerals: number;
+  remainingCredits: number;
+  message: string;
+}
+
+export const fetchTechTree = async (colonyId: number = 1): Promise<Technology[]> => {
+  const res = await axiosClient.get<Technology[]>(`/research/colony/${colonyId}`);
+  return res.data;
 };
 
-export const useTechTree = () => {
+export const startResearch = async (dto: StartResearchDto): Promise<StartResearchResponse> => {
+  const res = await axiosClient.post<StartResearchResponse>('/research/start', dto);
+  return res.data;
+};
+
+export const useTechTree = (colonyId: number = 1) => {
   return useQuery({
-    queryKey: ['research', 'tech-tree'],
-    queryFn: fetchTechTree,
+    queryKey: ['research', 'tech-tree', colonyId],
+    queryFn: () => fetchTechTree(colonyId),
+  });
+};
+
+export const useStartResearch = (colonyId: number = 1) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (technologyId: number) => startResearch({ colonyId, technologyId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['research', 'tech-tree', colonyId] });
+      queryClient.invalidateQueries({ queryKey: ['colony', colonyId] });
+      queryClient.invalidateQueries({ queryKey: ['colonies'] });
+    },
   });
 };

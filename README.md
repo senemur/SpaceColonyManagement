@@ -1,4 +1,4 @@
-# 🚀 Space Colony Management (IT IS CONTINUING)
+﻿# 🚀 Space Colony Management (IT IS CONTINUING)
 
 A 3D space colony management strategy game built with **ASP.NET Core (.NET 9) Backend (CQRS Pattern)** and **Next.js 16 (React 19, TypeScript, Three.js 3D Engine, TanStack Query, Tailwind CSS v4)** frontend.
 
@@ -461,11 +461,11 @@ Frontend/src/
 
 ### Sprint 7 — Research
 
-* [ ] Research tree
-* [ ] Research prerequisites
-* [ ] Research costs
-* [ ] Research duration
-* [ ] Research bonuses
+* [x] Research tree
+* [x] Research prerequisites
+* [x] Research costs
+* [x] Research duration
+* [x] Research bonuses
 
 ### Sprint 8 — Random Events
 
