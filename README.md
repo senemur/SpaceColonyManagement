@@ -8,6 +8,20 @@ The game starts on **Mars**. The player manages a colony, its resources, buildin
 
 ---
 
+## 📸 Screenshots
+
+| 🪐 3D Mars Koloni Görünümü | 🔬 Teknoloji & Araştırma Ağacı (Sprint 7) |
+|:---:|:---:|
+| ![3D Mars Koloni Görünümü](docs/images/scm1.jpg) | ![Mars Teknoloji ve Araştırma Ağacı](docs/images/scm2.jpg) |
+
+<p align="center">
+  <img src="docs/images/scm3.jpg" alt="Çevrimdışı İlerleme Raporu" width="600" />
+  <br />
+  <em>⏱️ Çevrimdışı İlerleme (Offline Progression) Raporu (Sprint 4)</em>
+</p>
+
+---
+
 ## 🎮 Game Concept
 
 The player starts with a small colony on Mars.
