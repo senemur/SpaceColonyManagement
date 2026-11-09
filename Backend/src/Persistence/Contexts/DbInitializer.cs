@@ -20,6 +20,7 @@ public static class DbInitializer
                 Commander = "John Ares",
                 Planet = "Mars",
                 Location = "Valles Marineris",
+                LastActiveDate = DateTime.UtcNow.AddMinutes(-30),
                 Stats = new ColonyStats
                 {
                     Sol = 2,

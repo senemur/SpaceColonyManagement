@@ -1,6 +1,7 @@
 namespace Application.Tests.DependencyResolvers;
 
 using Application.Features.Colonies.Commands.Create;
+using Application.Features.Colonies.Commands.ProcessOfflineProgress;
 using Application.Features.Colonies.Queries.GetOverview;
 using Application.Tests.Mocks.FakeDatas;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,5 +13,6 @@ public static class ColonyServiceRegistrations
         services.AddTransient<ColonyFakeData>();
         services.AddTransient<CreateColonyCommand>();
         services.AddTransient<GetColonyOverviewQuery>();
+        services.AddTransient<ProcessOfflineProgressCommand>();
     }
 }

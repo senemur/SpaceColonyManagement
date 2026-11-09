@@ -317,6 +317,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
                 100
             );
 
+            colony.LastActiveDate = DateTime.UtcNow;
             await colonyRepository.UpdateAsync(colony);
 
             if (foodProduced > 0) response.LogMessages.Add($"Hidroponik seralardan +{foodProduced:0} kg besin hasat edildi.");

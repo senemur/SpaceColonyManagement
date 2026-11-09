@@ -401,63 +401,63 @@ Frontend/src/
 
 ### Sprint 1 — Project Setup
 
-* [ ] Create solution
-* [ ] Create project layers
-* [ ] Configure PostgreSQL
-* [ ] Configure EF Core
-* [ ] Create DbContext
-* [ ] Create entities
-* [ ] Configure relationships
-* [ ] Create initial migration
-* [ ] Create database
-* [ ] Add seed data
-* [ ] Configure dependency injection
-* [ ] Create initial Razor Pages structure
+* [x] Create solution
+* [x] Create project layers
+* [x] Configure PostgreSQL
+* [x] Configure EF Core
+* [x] Create DbContext
+* [x] Create entities
+* [x] Configure relationships
+* [x] Create initial migration
+* [x] Create database
+* [x] Add seed data
+* [x] Configure dependency injection
+* [x] Create initial Razor Pages structure
 
 ### Sprint 2 — User & Colony
 
-* [ ] User registration
-* [ ] Login
-* [ ] Colony creation
-* [ ] Initial colonists
-* [ ] Initial resources
-* [ ] Initial buildings
-* [ ] Dashboard
+* [x] User registration
+* [x] Login
+* [x] Colony creation
+* [x] Initial colonists
+* [x] Initial resources
+* [x] Initial buildings
+* [x] Dashboard
 
 ### Sprint 3 — Resource System
 
-* [ ] Resource production
-* [ ] Resource consumption
-* [ ] Storage capacity
-* [ ] Resource calculations
-* [ ] Resource validation
+* [x] Resource production
+* [x] Resource consumption
+* [x] Storage capacity
+* [x] Resource calculations
+* [x] Resource validation
 
 ### Sprint 4 — Offline Progression
 
-* [ ] Last active time
-* [ ] Elapsed time calculation
-* [ ] Offline resource processing
-* [ ] Construction progression
-* [ ] Research progression
-* [ ] Event progression
-* [ ] Exploration progression
+* [x] Last active time
+* [x] Elapsed time calculation
+* [x] Offline resource processing
+* [x] Construction progression
+* [x] Research progression
+* [x] Event progression
+* [x] Exploration progression
 
 ### Sprint 5 — Building System
 
-* [ ] Build
-* [ ] Upgrade
-* [ ] Construction time
-* [ ] Worker assignment
-* [ ] Worker capacity
-* [ ] Building production
+* [x] Build
+* [x] Upgrade
+* [x] Construction time
+* [x] Worker assignment
+* [x] Worker capacity
+* [x] Building production
 
 ### Sprint 6 — Colonists
 
-* [ ] Colonist management
-* [ ] Assign workers
-* [ ] Health
-* [ ] Happiness
-* [ ] Colonist effects
+* [x] Colonist management
+* [x] Assign workers
+* [x] Health
+* [x] Happiness
+* [x] Colonist effects
 
 ### Sprint 7 — Research
 

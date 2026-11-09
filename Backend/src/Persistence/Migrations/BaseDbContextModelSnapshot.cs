@@ -179,6 +179,10 @@ namespace Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<DateTime>("LastActiveDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("LastActiveDate");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(150)

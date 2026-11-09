@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useColonyOverview, useNextSol, NextSolResponse } from '../api/colonyApi';
+import React, { useState, useEffect } from 'react';
+import { useColonyOverview, useNextSol, useOfflineProgress, NextSolResponse, OfflineProgressResponse } from '../api/colonyApi';
+import OfflineProgressionModal from './OfflineProgressionModal';
 import { 
   Zap, 
   Wind, 
@@ -16,13 +17,28 @@ import {
   TrendingUp,
   TrendingDown,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  History
 } from 'lucide-react';
 
 export default function ResourceBar({ colonyId = 1 }: { colonyId?: number }) {
   const { data: colony, isLoading } = useColonyOverview();
   const nextSolMutation = useNextSol(colonyId);
+  const offlineMutation = useOfflineProgress(colonyId);
   const [report, setReport] = useState<NextSolResponse | null>(null);
+  const [offlineReport, setOfflineReport] = useState<OfflineProgressResponse | null>(null);
+
+  // Sayfa açıldığında çevrimdışı ilerleme var mı diye kontrol et (Sprint 4: Offline Progression)
+  useEffect(() => {
+    offlineMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data.hasProgress) {
+          setOfflineReport(data);
+        }
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colonyId]);
 
   const stats = colony?.stats;
 
@@ -53,6 +69,14 @@ export default function ResourceBar({ colonyId = 1 }: { colonyId?: number }) {
     });
   };
 
+  const handleSyncOffline = () => {
+    offlineMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        setOfflineReport(data);
+      },
+    });
+  };
+
   return (
     <>
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
@@ -75,6 +99,17 @@ export default function ResourceBar({ colonyId = 1 }: { colonyId?: number }) {
           })}
         </div>
 
+        {/* Çevrimdışı Eşitle Butonu */}
+        <button
+          onClick={handleSyncOffline}
+          disabled={offlineMutation.isPending}
+          className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-slate-100 border border-slate-700 transition-all active:scale-95 disabled:opacity-50 shrink-0"
+          title="Çevrimdışı geçen süreyi eşitle ve üretimi al (Sprint 4)"
+        >
+          <History className={`w-3.5 h-3.5 text-amber-400 ${offlineMutation.isPending ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">Eşitle</span>
+        </button>
+
         {/* Sonraki Sol Butonu */}
         <button
           onClick={handleNextSol}
@@ -86,6 +121,14 @@ export default function ResourceBar({ colonyId = 1 }: { colonyId?: number }) {
           <span>{nextSolMutation.isPending ? 'Simüle Ediliyor...' : 'SONRAKİ SOL ☀️'}</span>
         </button>
       </div>
+
+      {/* Sprint 4: Çevrimdışı İlerleme Modalı */}
+      {offlineReport && (
+        <OfflineProgressionModal
+          report={offlineReport}
+          onClose={() => setOfflineReport(null)}
+        />
+      )}
 
       {/* Gün Sonu Simülasyon Rapor Modalı */}
       {report && (

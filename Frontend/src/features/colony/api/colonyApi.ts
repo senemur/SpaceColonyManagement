@@ -20,8 +20,6 @@ export const mockColonyStats: ColonyStats = {
   safetyScore: 98,
 };
 
-// Mars globe'da gösterilecek koloni zone'ları
-// Şimdilik statik, ileride backend'den çekilebilir
 export const COLONY_ZONES: ColonyZone[] = [
   { id: 1, name: 'Ares Prime', location: 'Valles Marineris', lat: -14, lon: -59, color: '#e2703a' },
   { id: 2, name: 'Olympus Station', location: 'Olympus Mons', lat: 18, lon: -133, color: '#9d7bff' },
@@ -33,7 +31,6 @@ export const fetchColonyById = async (id: number): Promise<ColonyOverview> => {
     const res = await axiosClient.get<ColonyOverview>(`/colonies/overview?id=${id}`);
     return res.data;
   } catch {
-    // Fallback mock
     return {
       id,
       name: COLONY_ZONES.find(z => z.id === id)?.name ?? 'Bilinmeyen Koloni',
@@ -51,11 +48,10 @@ export const useColonyById = (id: number) => {
     queryKey: ['colony', id],
     queryFn: () => fetchColonyById(id),
     enabled: id > 0,
-    staleTime: 1000 * 60 * 5, // 5 dakika boyunca taze kabul et (gereksiz istek atma)
+    staleTime: 1000 * 60 * 5,
   });
 };
 
-// Geriye dönük uyumluluk için (ResourceBar hâlâ bunu kullanıyor)
 export const fetchColonyOverview = async (): Promise<ColonyOverview> => {
   return fetchColonyById(1);
 };
@@ -79,22 +75,57 @@ export interface NextSolResponse {
   logMessages: string[];
 }
 
-// 1 Gün (Sol) ilerletme isteği
 export const advanceNextSol = async (colonyId: number = 1): Promise<NextSolResponse> => {
   const res = await axiosClient.post<NextSolResponse>(`/colonies/${colonyId}/nextSol`);
   return res.data;
 };
+
 export const useNextSol = (colonyId: number = 1) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => advanceNextSol(colonyId),
     onSuccess: () => {
-      // Tüm sistemi aynı anda yenile
       queryClient.invalidateQueries({ queryKey: ['colony'] });
       queryClient.invalidateQueries({ queryKey: ['buildings'] });
       queryClient.invalidateQueries({ queryKey: ['colonists'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['research'] });
     },
   });
 };
 
-  
+export interface OfflineProgressResponse {
+  hasProgress: boolean;
+  elapsedMinutes: number;
+  solsAdvanced: number;
+  powerChange: number;
+  waterChange: number;
+  foodChange: number;
+  oxygenChange: number;
+  mineralsChange: number;
+  summaryMessage: string;
+  details: string[];
+  lastActiveDate: string;
+  currentSyncDate: string;
+}
+
+export const processOfflineProgress = async (colonyId: number = 1): Promise<OfflineProgressResponse> => {
+  const res = await axiosClient.post<OfflineProgressResponse>(`/colonies/${colonyId}/offline-progress`);
+  return res.data;
+};
+
+export const useOfflineProgress = (colonyId: number = 1) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => processOfflineProgress(colonyId),
+    onSuccess: (data) => {
+      if (data.hasProgress) {
+        queryClient.invalidateQueries({ queryKey: ['colony'] });
+        queryClient.invalidateQueries({ queryKey: ['buildings'] });
+        queryClient.invalidateQueries({ queryKey: ['colonists'] });
+        queryClient.invalidateQueries({ queryKey: ['events'] });
+        queryClient.invalidateQueries({ queryKey: ['research'] });
+      }
+    },
+  });
+};

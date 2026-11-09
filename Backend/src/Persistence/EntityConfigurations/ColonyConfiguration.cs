@@ -19,6 +19,7 @@ public class ColonyConfiguration : IEntityTypeConfiguration<Colony>
         builder.Property(c => c.Commander).IsRequired().HasMaxLength(100);
         builder.Property(c => c.Planet).IsRequired().HasMaxLength(100);
         builder.Property(c => c.Location).IsRequired().HasMaxLength(150);
+        builder.Property(c => c.LastActiveDate).HasColumnName("LastActiveDate").IsRequired();
 
         builder.OwnsOne(
             c => c.Stats,

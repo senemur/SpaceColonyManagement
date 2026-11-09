@@ -10,6 +10,7 @@ public class Colony : Entity<int>
     public string Description { get; set; } = string.Empty;
     public string Commander { get; set; } = null!;
     public string Location { get; set; } = null!;
+    public DateTime LastActiveDate { get; set; } = DateTime.UtcNow;
 
     public ColonyStats Stats { get; set; } = new ColonyStats();
 
