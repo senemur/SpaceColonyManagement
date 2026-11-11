@@ -32,6 +32,8 @@ export default function BuildingInspectPanel({
   const isLab = lowerName.includes('laboratuvar') || lowerName.includes('lab') || lowerName.includes('bilim');
   const isSolar = lowerName.includes('güneş') || lowerName.includes('solar') || lowerName.includes('panel');
   const isWater = lowerName.includes('su') || lowerName.includes('water') || lowerName.includes('sondaj');
+  const isHabitat = lowerName.includes('habitat') || lowerName.includes('yaşam');
+  const isRocket = lowerName.includes('roket') || lowerName.includes('fırlatma') || lowerName.includes('rocket');
 
   const executeAction = async (actionType: string, defaultAmount: number, label: string) => {
     try {
@@ -179,14 +181,42 @@ export default function BuildingInspectPanel({
         {isWater && (
           <button
             disabled={isLoading}
-            onClick={() => executeAction('ExtractWater', 50, 'Su Çıkarma')}
+            onClick={() => executeAction('ExtractWater', 120, 'Buzul Sondajı ve Filtrasyon')}
             className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-cyan-950/60 hover:bg-cyan-900/80 border border-cyan-700/50 text-cyan-200 transition-colors disabled:opacity-50"
           >
             <div className="flex items-center gap-2.5">
               <Droplets className="w-4 h-4 text-cyan-400" />
-              <span>Sondaj ve Tank Dolumu</span>
+              <span>Buzul Sondajı & Filtrasyon</span>
             </div>
-            <span className="text-[10px] text-cyan-400/80">+50 L Su</span>
+            <span className="text-[10px] text-cyan-400/80">+120 L Su</span>
+          </button>
+        )}
+
+        {isHabitat && (
+          <button
+            disabled={isLoading}
+            onClick={() => executeAction('RepairBuilding', 15, 'Yaşam Desteği ve Basınç Bakımı')}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-teal-950/60 hover:bg-teal-900/80 border border-teal-700/50 text-teal-200 transition-colors disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2.5">
+              <Building2 className="w-4 h-4 text-teal-400" />
+              <span>Basınç & Isıtma Kalibrasyonu</span>
+            </div>
+            <span className="text-[10px] text-teal-400/80">+15 Bütünlük</span>
+          </button>
+        )}
+
+        {isRocket && (
+          <button
+            disabled={isLoading}
+            onClick={() => executeAction('RepairBuilding', 30, 'Fırlatma Telemetrisi')}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold bg-purple-950/60 hover:bg-purple-900/80 border border-purple-700/50 text-purple-200 transition-colors disabled:opacity-50"
+          >
+            <div className="flex items-center gap-2.5">
+              <Atom className="w-4 h-4 text-purple-400" />
+              <span>Telemetri & Yörünge Hazırlığı</span>
+            </div>
+            <span className="text-[10px] text-purple-400/80">+30 Bütünlük</span>
           </button>
         )}
 

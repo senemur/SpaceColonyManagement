@@ -370,47 +370,95 @@ body {
 /* ===== İÇ MEKÂN GÖREV PANELİ (SOL TARAF) ===== */
 .taskpanel {
   position: absolute;
-  left: 14px;
-  top: 74px;
+  left: 16px;
+  top: 76px;
   z-index: 30;
-  padding: 12px 14px;
-  width: 240px;
+  padding: 14px;
+  width: 290px;
   font-size: 11.5px;
   line-height: 1.5;
   color: var(--txt);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  background: rgba(10, 18, 30, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(14px);
   max-height: calc(100vh - 150px);
   overflow-y: auto;
 }
-.taskpanel header {
+.tp-container {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+}
+.tp-header {
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 6px;
-  padding-bottom: 6px;
+  padding-bottom: 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.taskpanel header b {
-  font-size: 13px;
-  color: var(--mars2);
+.tp-head-title {
+  display: flex;
+  flex-direction: column;
+}
+.tp-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f1f5f9;
 }
 .tp-sub {
   font-size: 10.5px;
   color: var(--muted);
-  margin-bottom: 10px;
-  line-height: 1.4;
+  line-height: 1.3;
 }
+.tp-close-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tp-close-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+
+/* Rehber Kutusu */
+.tp-guide {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.tp-guide-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 4px;
+}
+.tp-guide-desc {
+  font-size: 10px;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
 .tp-hintbar {
   position: relative;
-  height: 22px;
+  height: 24px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
 }
 .tp-fill {
   position: absolute;
@@ -418,50 +466,96 @@ body {
   top: 0;
   bottom: 0;
   width: 0%;
-  background: linear-gradient(90deg, var(--mars), var(--gold));
-  transition: width 0.1s linear;
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  transition: width 0.08s linear;
+}
+.tp-fill.active {
+  background: linear-gradient(90deg, #e2703a, #f59e0b);
 }
 .tp-text {
   position: relative;
   z-index: 2;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   color: #fff;
-  text-shadow: 0 1px 2px #000;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  padding: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-list-header {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
 }
 .tp-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   padding: 0;
   margin: 0;
 }
-.tp-list li {
+.tp-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 8px;
-  border-radius: 7px;
+  padding: 8px 10px;
+  border-radius: 9px;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transition: all 0.18s;
+}
+.tp-item.tp-active {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.5);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+.tp-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 175px;
+}
+.tp-item-name {
   font-size: 11px;
-}
-.tp-list li span {
-  color: var(--muted);
-}
-.tp-list li b {
-  font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
+  color: #f1f5f9;
 }
-.tp-list li b.grow {
-  color: var(--gold);
+.tp-item-sub {
+  font-size: 9.5px;
+  color: #38bdf8;
+  font-weight: 500;
 }
-.tp-list li b.ready {
-  color: var(--green);
+.tp-action-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #bae6fd;
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.tp-list li b.empty {
-  color: var(--muted);
+.tp-action-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(2, 132, 199, 0.6);
+}
+.tp-harvest-all {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fde68a;
+}
+.tp-harvest-all:hover {
+  background: #d97706;
+  color: #ffffff;
 }
 
 /* ===== ALT HUD & HINT ===== */
@@ -566,57 +660,188 @@ body {
   filter: brightness(1.1);
 }
 
-/* ===== CROSSHAIR ===== */
+/* ===== SMART SCI-FI CROSSHAIR & TASK HUD ===== */
 .crosshair {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 5;
+  z-index: 25;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+}
+
+/* Standart Nişangah Noktası & Köşe Braketleri */
+.ch-reticle {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ch-dot {
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  transition: all 0.18s;
+}
+.ch-bracket {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: rgba(255, 255, 255, 0.65);
+  border-style: solid;
+  transition: all 0.2s ease-out;
+}
+.ch-tl {
+  top: 0;
+  left: 0;
+  border-width: 1.5px 0 0 1.5px;
+}
+.ch-tr {
+  top: 0;
+  right: 0;
+  border-width: 1.5px 1.5px 0 0;
+}
+.ch-bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 1.5px 1.5px;
+}
+.ch-br {
+  bottom: 0;
+  right: 0;
+  border-width: 0 1.5px 1.5px 0;
+}
+
+/* Kilitlenme Durumu (Hedef İstasyon Bulundu) */
+.crosshair.locked .ch-reticle {
+  width: 42px;
+  height: 42px;
+}
+.crosshair.locked .ch-dot {
+  opacity: 0;
+}
+.crosshair.locked .ch-bracket {
+  border-color: #38bdf8;
+  filter: drop-shadow(0 0 6px #0284c7);
+}
+
+/* Çalışma / E Basılı Tutma Durumu */
+.crosshair.working .ch-reticle {
+  width: 48px;
+  height: 48px;
+  transform: rotate(45deg);
+}
+.crosshair.working .ch-bracket {
+  border-color: #f59e0b;
+  filter: drop-shadow(0 0 8px #d97706);
+}
+
+/* Dairesel İlerleme Çemberi SVG */
+.ch-progress-ring {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  transform: rotate(-90deg);
   pointer-events: none;
 }
+.ch-ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 3;
+}
+.ch-ring-bar {
+  fill: none;
+  stroke: #38bdf8;
+  stroke-width: 3.5;
+  stroke-dasharray: 144.51;
+  stroke-dashoffset: 144.51;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.06s linear, stroke 0.15s;
+}
+.crosshair.working .ch-ring-bar {
+  stroke: #f59e0b;
+  filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+}
 
-.crosshair::before,
-.crosshair::after {
-  content: "";
+/* Ortadaki E Tuşu Rozeti */
+.ch-key-badge {
   position: absolute;
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #e2703a;
+  box-shadow: 0 0 8px rgba(226, 112, 58, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.crosshair.locked .ch-key-badge {
+  opacity: 1;
+  transform: scale(1);
+}
+.crosshair.working .ch-key-badge {
+  background: #f59e0b;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.9);
+  animation: chPulse 0.4s infinite alternate;
+}
+@keyframes chPulse {
+  from { transform: scale(0.92); }
+  to { transform: scale(1.08); }
 }
 
-.crosshair::before {
-  left: 50%;
-  top: -11px;
-  width: 2px;
-  height: 7px;
-  transform: translateX(-50%);
-}
-
-.crosshair::after {
-  top: 50%;
-  left: -11px;
-  height: 2px;
-  width: 7px;
-  transform: translateY(-50%);
-}
-
-.crosshair span {
+/* Nişangah Altındaki Bilgi Kartı */
+.ch-target-card {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: transparent;
-  border: 1.5px solid var(--mars2);
-  transform: translate(-50%, -50%);
-  transition: width 0.18s, height 0.18s, background 0.18s;
+  top: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 14px;
+  background: rgba(10, 18, 30, 0.92);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  animation: chSlideDown 0.18s ease-out;
 }
-
-.crosshair.active span {
-  width: 16px;
-  height: 16px;
-  background: rgba(226, 112, 58, 0.25);
+@keyframes chSlideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ch-target-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+}
+.ch-target-hint {
+  font-size: 10px;
+  color: #38bdf8;
+  font-weight: 500;
+}
+.ch-rew {
+  color: #facc15;
+  font-weight: 700;
 }
 
 /* ===== PLAY OVERLAY ===== */

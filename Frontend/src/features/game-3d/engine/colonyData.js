@@ -37,9 +37,10 @@ export const COLOR = {
 export const BUILD_DEFS = {
   habitat: { name: 'Habitat Modülü', k: 'yaşam', icon: '⬢', cost: 120, desc: 'Yaşam modülü — personel barınma ve yaşam destek ünitesi.' },
   solar: { name: 'Güneş Paneli Dizisi', k: 'enerji', icon: '☀', cost: 90, desc: 'Fotovoltaik panel dizisi, gün ışığında enerji üretir.' },
-  lab: { name: 'Araştırma Laboratuvarı', k: 'bilim', icon: '⚛', cost: 150, desc: 'Biyoloji, jeoloji ve teknoloji analiz üssü.' },
-  mine: { name: 'Maden Ocağı', k: 'endüstri', icon: '◮', cost: 100, desc: 'Regolit kazısı — parça ve metal cevheri.' },
+  water: { name: 'Yeraltı Su Sondaj İstasyonu', k: 'yaşam', icon: '💧', cost: 110, desc: 'Permafrost tabakasından termal sondajla su çıkarma ünitesi.' },
   farm: { name: 'Hidroponik Tarım Serası', k: 'yaşam', icon: '❋', cost: 130, desc: 'Hidroponik tarım — taze besin ve oksijen üretimi.' },
+  mine: { name: 'Regolit Maden Ocağı', k: 'endüstri', icon: '◮', cost: 100, desc: 'Regolit kazısı — parça ve metal cevheri.' },
+  lab: { name: 'Araştırma Laboratuvarı', k: 'bilim', icon: '⚛', cost: 150, desc: 'Biyoloji, jeoloji ve teknoloji analiz üssü.' },
   rocket: { name: 'Fırlatma Kulesi', k: 'endüstri', icon: '▲', cost: 200, desc: 'Yörünge istasyonuyla bağlantı ve kargo noktası.' },
 };
 
@@ -95,11 +96,11 @@ export function createColony(backendOverview = null, backendBuildings = null, ba
 
   if (backendBuildings && Array.isArray(backendBuildings) && backendBuildings.length > 0) {
     const buildingTypePresets = {
-      1: { t: 'solar', k: 'enerji', x: 26, z: -18 },
-      2: { t: 'habitat', k: 'yaşam', x: 0, z: 0 },
+      1: { t: 'habitat', k: 'yaşam', x: 0, z: 0 },
+      2: { t: 'solar', k: 'enerji', x: 26, z: -18 },
       3: { t: 'farm', k: 'yaşam', x: 6, z: 30 },
-      4: { t: 'solar', k: 'enerji', x: 38, z: -8 },
-      5: { t: 'mine', k: 'endüstri', x: -22, z: 16 },
+      4: { t: 'mine', k: 'endüstri', x: -22, z: 16 },
+      5: { t: 'water', k: 'yaşam', x: 38, z: -8 },
       6: { t: 'lab', k: 'bilim', x: 10, z: -26 },
     };
 

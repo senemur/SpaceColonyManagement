@@ -672,6 +672,32 @@ export function initMars3D(options = {}) {
         g.add(box(2.2, 0.16, 0.5, MAT.metal, 4.4, 0.4 + i * 0.55, -0.9 - i * 0.55));
       return g;
     },
+    water() {
+      const g = new THREE.Group();
+      g.add(cyl(4.2, 4.8, 1.2, MAT.rock, 12).translateY(0.6));
+      // Drill tower
+      const tower = cyl(0.5, 0.7, 10, MAT.metal, 8);
+      tower.position.set(0, 5, 0);
+      g.add(tower);
+      // Large water tank
+      const tank = cyl(2.2, 2.2, 4.5, MAT.water, 16);
+      tank.position.set(3.5, 2.5, 1.5);
+      g.add(tank);
+      const tankCap = cyl(2.3, 2.3, 0.4, MAT.metalD, 16);
+      tankCap.position.set(3.5, 4.9, 1.5);
+      g.add(tankCap);
+      // Industrial blue beacon
+      const beacon = new THREE.PointLight(0x38bdf8, 25, 12);
+      beacon.position.set(0, 10.5, 0);
+      g.add(beacon);
+      // Door tunnel
+      const tunnel = new THREE.Group();
+      tunnel.position.set(0, 0, -4.8);
+      tunnel.add(box(2.2, 2.6, 1.8, MAT.metalD, 0, 1.3, 0));
+      tunnel.add(box(1.7, 2.2, 0.14, MAT.glass, 0, 1.15, -0.9));
+      g.add(tunnel);
+      return g;
+    },
   };
 
   const buildMeshes = [];
@@ -684,11 +710,13 @@ export function initMars3D(options = {}) {
     mine: "Cevher kaz, vagonu yükle",
     lab: "Numune al, analiz et",
     solar: "İnvertör ve batarya bakımı",
+    water: "Buzul eritme, sondaj pompası ve arıtma",
     rocket: "Fırlatma sırasını hazırla",
     default: "İçeri gir",
   };
   colony.builds.forEach((b) => {
-    const g = BUILDERS[b.t]();
+    const builder = BUILDERS[b.t] || BUILDERS.habitat;
+    const g = builder();
     g.position.set(b.x, terrainHeight(b.x, b.z), b.z);
     g.rotation.y = rnd(0, Math.PI * 2);
     g.userData = { kind: "build", ref: b };
@@ -1630,14 +1658,26 @@ export function initMars3D(options = {}) {
     });
   }
 
-  /** İçeride fan animasyonu + görev ilerlemesi. */
+  /** İçeride fan animasyonu, hologram dalgalanması + görev ilerlemesi. */
   function updateTasks(dt) {
     const h = player.inside;
 
-    if (h && h.interior.fans) {
-      h.interior.fans.forEach((f, i) => {
-        f.rotation.x += dt * (i ? -4 : 4);
-      });
+    if (h && h.interior) {
+      // Fanlar
+      if (h.interior.fans) {
+        h.interior.fans.forEach((f, i) => {
+          f.rotation.x += dt * (i ? -4 : 4);
+        });
+      }
+      // 3D Hologram işaretçilerini yukarı/aşağı dalgalandır
+      if (h.interior.group) {
+        const time = performance.now() * 0.003;
+        h.interior.group.traverse((obj) => {
+          if (obj.userData?.isBeacon) {
+            obj.position.y = (obj.userData.baseY || 2.4) + Math.sin(time + obj.id * 0.7) * 0.09;
+          }
+        });
+      }
     }
 
     if (!taskTarget) {
@@ -1649,7 +1689,7 @@ export function initMars3D(options = {}) {
     }
 
     if (taskHolding) {
-      taskProgress += dt / 0.8;
+      taskProgress += dt / (taskTarget.dur || 1.6);
       if (taskProgress >= 1) {
         taskProgress = 0;
         completeTask(taskTarget);
@@ -1658,6 +1698,7 @@ export function initMars3D(options = {}) {
       taskProgress = Math.max(0, taskProgress - dt * 1.6);
     }
     renderTaskBar();
+
     // liste yalnızca durum değiştiğinde yenilenir
     taskListKey = h.planters.length
       ? h.planters.map((p) => p.stage + Math.round(p.growth * 10)).join()
@@ -1671,14 +1712,55 @@ export function initMars3D(options = {}) {
   function renderTaskBar() {
     const fill = $("#tpFill");
     const text = $("#tpText");
-    if (!fill || !text) return;
-    fill.style.width = Math.round(taskProgress * 100) + "%";
-    fill.classList.toggle("active", taskProgress > 0);
-    text.textContent = taskTarget
-      ? taskProgress > 0
-        ? "Çalışıyor..."
-        : taskTarget.hint || "E basılı tut"
-      : "Bir görev istasyonuna nişan al";
+    const ch = $("#crosshair");
+    const ring = $("#chRingBar");
+    const chTargetCard = $("#chTargetCard");
+    const chTargetName = $("#chTargetName");
+    const chTargetHint = $("#chTargetHint");
+
+    const percent = Math.round(taskProgress * 100);
+    const isHolding = taskHolding && taskProgress > 0;
+
+    if (fill) {
+      fill.style.width = percent + "%";
+      fill.classList.toggle("active", taskProgress > 0);
+    }
+    if (text) {
+      text.textContent = taskTarget
+        ? taskProgress > 0
+          ? `İşlem Yapılıyor... %${percent}`
+          : `${taskTarget.label} — ${taskTarget.rewardText || taskTarget.hint || "[E] Basılı Tut"}`
+        : "Bir görev istasyonuna yaklaş ve bak";
+    }
+
+    if (ch) {
+      ch.classList.toggle("locked", !!taskTarget);
+      ch.classList.toggle("working", isHolding);
+    }
+
+    if (ring) {
+      // SVG r=23 => circumference = 2 * PI * 23 = 144.51
+      const circumference = 144.51;
+      const offset = circumference - (taskProgress * circumference);
+      ring.style.strokeDashoffset = String(offset);
+      ring.style.opacity = taskTarget ? "1" : "0";
+    }
+
+    if (chTargetCard && chTargetName && chTargetHint) {
+      if (taskTarget) {
+        chTargetCard.style.display = "flex";
+        chTargetName.textContent = taskTarget.label;
+        chTargetHint.innerHTML = taskProgress > 0
+          ? `<b>İşlem Yapılıyor... %${percent}</b>`
+          : `<b>[ E ]</b> Tuşunu Basılı Tut · <span class="ch-rew">${taskTarget.rewardText || ""}</span>`;
+      } else if (player.inside) {
+        chTargetCard.style.display = "flex";
+        chTargetName.textContent = player.inside.b.n;
+        chTargetHint.textContent = "İstasyonun yanındaki mavi halkaya yaklaş ve bak";
+      } else {
+        chTargetCard.style.display = "none";
+      }
+    }
   }
 
   function nearDoor() {
@@ -1725,16 +1807,33 @@ export function initMars3D(options = {}) {
     if (!el) return;
     el.hidden = false;
     el.innerHTML = `
-      <header>
-        <b id="tpName">${h.b.n}</b>
-        <button class="mini-btn" id="tpClose">✕</button>
-      </header>
-      <div class="tp-sub">${h.hint} · <kbd>Q</kbd> ile çık</div>
-      <div class="tp-hintbar">
-        <div class="tp-fill" id="tpFill"></div>
-        <span class="tp-text" id="tpText">Bir görev istasyonuna nişan al</span>
-      </div>
-      <ul class="tp-list" id="tpList"></ul>`;
+      <div class="tp-container">
+        <div class="tp-header">
+          <div class="tp-head-title">
+            <b class="tp-name">${h.b.n} (Sv ${h.b.lvl})</b>
+            <div class="tp-sub">${h.hint} · <kbd>Q</kbd> ile Çıkış</div>
+          </div>
+          <button class="mini-btn tp-close-btn" id="tpClose" title="Binadan Çık (Q)">✕</button>
+        </div>
+
+        <div class="tp-guide">
+          <div class="tp-guide-title">🎯 Görev Nasıl Yapılır?</div>
+          <div class="tp-guide-desc">
+            1. İstasyona yaklaş (yerdeki mavi halka)<br>
+            2. Nişangahı istasyona çevir<br>
+            3. <b>[E]</b> tuşunu basılı tut veya listeden <b>Yap</b>'a bas!
+          </div>
+        </div>
+
+        <div class="tp-hintbar">
+          <div class="tp-fill" id="tpFill"></div>
+          <span class="tp-text" id="tpText">Bir görev istasyonuna nişan al</span>
+        </div>
+
+        <div class="tp-list-header">Mevcut Görev İstasyonları</div>
+        <ul class="tp-list" id="tpList"></ul>
+      </div>`;
+
     const close = $("#tpClose");
     if (close) addEvt(close, "click", exitInterior);
     renderTaskList();
@@ -1750,40 +1849,134 @@ export function initMars3D(options = {}) {
     if (!ul || !player.inside) return;
     const h = player.inside;
     let items = "";
+
     if (h.type === "farm") {
-      items = h.planters
-        .map(
-          (p, i) =>
-            `<li><span>Yatak ${i + 1}</span><b class="${p.stage}">${plotLabelFor(p)}</b></li>`,
-        )
+      // Ana tarım istasyonları
+      const farmStations = (h.stations || []).filter((s) => !s.userData?.task?.isPlot);
+      items += farmStations
+        .map((stObj, idx) => {
+          const t = stObj.userData?.task;
+          if (!t) return "";
+          return `
+            <li class="tp-item ${taskTarget && taskTarget.id === t.id ? "tp-active" : ""}">
+              <div class="tp-item-left">
+                <span class="tp-item-name">${t.label}</span>
+                <small class="tp-item-sub">${t.rewardText || t.hint}</small>
+              </div>
+              <button class="tp-action-btn" data-st-idx="${idx}">Yap</button>
+            </li>`;
+        })
         .join("");
-    } else if (h.type === "habitat") {
-      const sleepers = astrons.filter((a) => a.inside === h && a.state === "sleep").length;
-      const workers = astrons.filter((a) => a.inside === h && a.state === "work").length;
-      items = `<li><span>Uyuyan</span><b>${sleepers}</b></li>
-               <li><span>Çalışan</span><b>${workers}</b></li>
-               <li><span>Bütünlük</span><b>%${h.b.hp.toFixed(0)}</b></li>`;
+
+      // Ekim Yatakları Özeti
+      const ripeCount = h.planters.filter((p) => p.stage === "ripe").length;
+      const growingCount = h.planters.filter((p) => p.stage === "growing").length;
+      const emptyCount = h.planters.filter((p) => p.stage === "empty").length;
+      items += `
+        <li class="tp-item tp-summary">
+          <div class="tp-item-left">
+            <span class="tp-item-name">🌾 18 Ekim Yatağı</span>
+            <small class="tp-item-sub">${ripeCount} Hasada Hazır · ${growingCount} Büyüyor · ${emptyCount} Boş</small>
+          </div>
+          <button class="tp-action-btn tp-harvest-all" data-quick-farm="1">Hepsini Hasat Et</button>
+        </li>`;
     } else {
-      items = `<li><span>Bütünlük</span><b>%${h.b.hp.toFixed(0)}</b></li>
-               <li><span>Seviye</span><b>Sv ${h.b.lvl}</b></li>`;
+      const stList = h.stations || [];
+      items = stList
+        .map((stObj, idx) => {
+          const t = stObj.userData?.task;
+          if (!t) return "";
+          return `
+            <li class="tp-item ${taskTarget && taskTarget.id === t.id ? "tp-active" : ""}">
+              <div class="tp-item-left">
+                <span class="tp-item-name">${t.label}</span>
+                <small class="tp-item-sub">${t.rewardText || t.hint}</small>
+              </div>
+              <button class="tp-action-btn" data-st-idx="${idx}">Yap</button>
+            </li>`;
+        })
+        .join("");
     }
+
     ul.innerHTML = items;
+
+    // Buton tıklamaları ile görev tamamlama
+    ul.querySelectorAll(".tp-action-btn").forEach((btn) => {
+      addEvt(btn, "click", (ev) => {
+        ev.stopPropagation();
+        if (btn.dataset.quickFarm) {
+          let harvested = 0;
+          h.planters.forEach((p) => {
+            if (p.stage === "ripe") {
+              p.stage = "empty";
+              p.growth = 0;
+              p.plant.visible = false;
+              harvested += 42;
+            }
+          });
+          const gainVal = harvested > 0 ? harvested : 35;
+          gain("besin", gainVal);
+          triggerColonyAction("HarvestFood", gainVal, h.b.id);
+          toast(`Tüm seradaki mahsuller hasat edildi! +${gainVal} kg besin`, "ok");
+          renderTaskList();
+          return;
+        }
+
+        const idx = Number(btn.dataset.stIdx);
+        const targetObj = (h.stations || [])[idx];
+        const t = targetObj?.userData?.task;
+        if (t) {
+          completeTask(t);
+        }
+      });
+    });
   }
 
-  /** İçeride crosshair ile görev hedefi arar. */
+  /** İçeride crosshair ile görev hedefi arar (Raycast + Akıllı Görüş Açısı Snap). */
   function pickTask() {
     if (!player.inside) return null;
     const list = player.inside.stations;
     if (!list || !list.length) return null;
+
+    // 1) Doğrudan merkez raycast (ekran ortasından)
     ray.setFromCamera(new THREE.Vector2(0, 0), camera);
     const hits = ray.intersectObjects(list, true);
     for (const h of hits) {
+      if (h.distance > 8.0) continue;
       let o = h.object;
       while (o && !o.userData.task) o = o.parent;
       if (o?.userData.task) return o.userData.task;
     }
-    return null;
+
+    // 2) Akıllı Yakınlık ve Görüş Açısı (Vision Cone Proximity)
+    const camDir = new THREE.Vector3();
+    camera.getWorldDirection(camDir);
+
+    let bestTask = null;
+    let bestDot = 0.70; // ~45 derece görüş açısı toleransı
+
+    for (const stObj of list) {
+      const pos = new THREE.Vector3();
+      stObj.getWorldPosition(pos);
+      pos.y += 0.9;
+
+      const toTarget = pos.clone().sub(camera.position);
+      const dist = toTarget.length();
+      if (dist > 4.8) continue; // 4.8 metreden uzaktaysa snap yapma
+
+      toTarget.normalize();
+      const dot = camDir.dot(toTarget);
+      if (dot > bestDot) {
+        bestDot = dot;
+        let o = stObj;
+        while (o && !o.userData.task) o = o.parent;
+        if (o?.userData.task) bestTask = o.userData.task;
+      }
+    }
+
+    return bestTask;
   }
+
   function completeTask(task) {
     const h = player.inside;
     if (!h) return;
@@ -1798,7 +1991,7 @@ export function initMars3D(options = {}) {
           p.water = Math.max(p.water, 0.75);
           p.plant.visible = true;
           p.weeds.visible = true;
-          toast(`Yatak ${p.index + 1}: tohum eklendi · otlar çıktı — <b>çapala</b>`, "ok");
+          toast(`Yatak ${p.index + 1}: tohum ekildi · otlar çıktı — <b>çapala</b>`, "ok");
         } else if (p.weeds.visible) {
           p.weeds.visible = false;
           gain("besin", 10);
@@ -1832,7 +2025,7 @@ export function initMars3D(options = {}) {
         gain("su", 220);
         h.planters.forEach((p) => (p.water = 1));
         triggerColonyAction("ExtractWater", 220, b.id);
-        toast("Su tankı doldu · +220 L su depolandı", "ok");
+        toast("Ana sulama tankı doldu · +220 L su depolandı", "ok");
         break;
       case "harvest_bin": {
         const total = h.planters.reduce((s, p) => s + (p.harvested || 0), 0);
@@ -1840,7 +2033,7 @@ export function initMars3D(options = {}) {
         h.planters.forEach((p) => (p.harvested = 0));
         gain("besin", amount);
         triggerColonyAction("HarvestFood", amount, b.id);
-        toast(`Hasat koloni deposuna sevk edildi · +${amount} kg besin`, "ok");
+        toast(`Hasat koloni ambarına sevk edildi · +${amount} kg besin`, "ok");
         break;
       }
       case "seed_box":
@@ -1850,55 +2043,90 @@ export function initMars3D(options = {}) {
           if (p.growth >= 1) p.stage = "ripe";
         });
         triggerColonyAction("HarvestFood", 15, b.id);
-        toast("Tohumlar ıslatıldı · büyüme hızlandı", "ok");
+        toast("Tohumlar iklimlendirildi · seradaki büyüme hızlandı", "ok");
         break;
       case "ore":
         if (task.seam) task.seam.scale.multiplyScalar(0.75);
         gain("parça", 14);
         b.hp = clamp(b.hp - 1.5, 10, 100);
         triggerColonyAction("MineOre", 14, b.id);
-        toast("Cevher çıkarıldı · +14 mineral", "ok");
+        toast("Cevher damarı kazıldı · +14 mineral", "ok");
         break;
       case "cart":
-        gain("parça", 25);
-        triggerColonyAction("MineOre", 25, b.id);
-        toast("Vagon yüzeye kalktı · +25 mineral", "ok");
+        gain("parça", 35);
+        triggerColonyAction("MineOre", 35, b.id);
+        toast("Cevher vagonu asansörle yüzeye gönderildi · +35 mineral", "ok");
+        break;
+      case "drill":
+        gain("parça", 20);
+        triggerColonyAction("MineOre", 20, b.id);
+        toast("Otomatik sondaj kalibre edildi · +20 mineral", "ok");
         break;
       case "sample":
         b.hp = clamp(b.hp + 1, 0, 100);
-        triggerColonyAction("ResearchProgress", 10, b.id);
+        triggerColonyAction("ResearchProgress", 15, b.id);
         toast("Biyokültür numunesi alındı · Araştırma ilerletildi", "ok");
         break;
       case "analyze":
         gain("enerji", 6);
-        triggerColonyAction("ResearchProgress", 20, b.id);
-        toast("Analiz tamamlandı · Araştırma ilerletildi", "ok");
+        triggerColonyAction("ResearchProgress", 25, b.id);
+        toast("Spektrometre analizi tamamlandı · Araştırma ilerletildi", "ok");
         break;
       case "centrifuge":
-        gain("oksijen", 1.5);
-        triggerColonyAction("GeneratePower", 15, b.id);
-        toast("Santrifüj çalıştı · +1.5 oksijen", "ok");
+        gain("oksijen", 2.0);
+        triggerColonyAction("ResearchProgress", 10, b.id);
+        toast("Santrifüj çalıştı · +2 O₂ üretildi ve teknoloji ilerledi", "ok");
         break;
       case "inverter":
         b.hp = clamp(b.hp + 6, 0, 100);
         gain("enerji", 35);
         triggerColonyAction("GeneratePower", 35, b.id);
-        toast("İnvertör kalibre edildi · +35 kWh enerji", "ok");
+        toast("Güç invertörü kalibre edildi · +35 kWh enerji", "ok");
         break;
       case "battery":
         gain("enerji", 25);
         triggerColonyAction("GeneratePower", 25, b.id);
-        toast("Bataryalar şarj edildi · +25 kWh enerji", "ok");
+        toast("Batarya bankası hızlı şarj edildi · +25 kWh enerji", "ok");
         break;
       case "fuel":
-        b.hp = clamp(b.hp + 4, 0, 100);
+        b.hp = clamp(b.hp + 5, 0, 100);
         triggerColonyAction("RepairBuilding", 15, b.id);
-        toast("Yakıt tankları dolduruldu", "ok");
+        toast("Kriyojenik yakıt tankları basınçlandırıldı", "ok");
+        break;
+      case "cargo":
+        b.hp = clamp(b.hp + 6, 0, 100);
+        triggerColonyAction("RepairBuilding", 20, b.id);
+        toast("Yörünge kargosu mühürlendi · Hazır", "ok");
         break;
       case "launch":
         b.lvl = Math.min(9, b.lvl + 1);
         triggerColonyAction("RepairBuilding", 50, b.id);
-        toast(`<b>Fırlatma sırası hazır!</b> Fırlatma Kulesi → Sv ${b.lvl}`, "ok");
+        toast(`<b>Fırlatma telemetrisi hazır!</b> Kule Bütünlüğü Yenilendi`, "ok");
+        break;
+      case "water_pump":
+        gain("su", 180);
+        triggerColonyAction("ExtractWater", 180, b.id);
+        toast("Buzul eritme pompası çalıştı · +180 L su depolandı", "ok");
+        break;
+      case "water_filter":
+        gain("su", 120);
+        triggerColonyAction("ExtractWater", 120, b.id);
+        toast("Moleküler su filtresi temizlendi · +120 L taze su", "ok");
+        break;
+      case "water_valve":
+        gain("su", 80);
+        triggerColonyAction("ExtractWater", 80, b.id);
+        toast("Basınç vanası dengelendi · +80 L su depolara aktarıldı", "ok");
+        break;
+      case "comms":
+        gain("enerji", 5);
+        triggerColonyAction("GeneratePower", 5, b.id);
+        toast("İletişim & Seyir defteri eşitlendi · Mürettebat morali yükseldi", "ok");
+        break;
+      case "medbay":
+        b.hp = clamp(b.hp + 6, 0, 100);
+        triggerColonyAction("RepairBuilding", 15, b.id);
+        toast("Medikal tarama tamamlandı · Mürettebat sağlık durumu mükemmel", "ok");
         break;
       case "repair":
       default:
@@ -1929,14 +2157,14 @@ export function initMars3D(options = {}) {
     if (hint) {
       hint.innerHTML = player.inside
         ? taskTarget
-          ? `<b>${taskTarget.label}</b> — <b>E</b> basılı tut · ${taskTarget.hint || ""} · <kbd>Q</kbd> çıkış`
-          : `<b>${player.inside.b.n}</b> içindesin · <kbd>WASD</kbd> dolaş · görev istasyonuna nişan al · <kbd>Q</kbd> çıkış`
+          ? `<b>${taskTarget.label}</b> — <kbd>E</kbd> basılı tut (${taskTarget.rewardText || taskTarget.hint || ""}) · <kbd>Q</kbd> çıkış`
+          : `<b>${player.inside.b.n}</b> içindesin · Yerdeki mavi halkaya yaklaş ve bak · <kbd>Q</kbd> çıkış`
         : h
           ? `<b>${h.b.n}</b> kapısı — <kbd>E</kbd> ile içeri gir (${h.hint})`
           : hit
             ? hit.kind === "crew"
               ? `<b>${hit.ref.name}</b> · ${hit.ref.role} — etkileşim için <kbd>E</kbd>`
-              : `<b>${hit.ref.n}</b> · ${BUILD_DEFS[hit.ref.t].name} — <kbd>E</kbd> ile incele`
+              : `<b>${hit.ref.n}</b> · ${BUILD_DEFS[hit.ref.t]?.name || "Bina"} — <kbd>E</kbd> ile incele`
             : "Yürü: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> · Koş: <kbd>Shift</kbd> · Kamera: <kbd>V</kbd> · Etkileşim: <kbd>E</kbd>";
     }
   }

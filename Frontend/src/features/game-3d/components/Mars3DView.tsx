@@ -54,9 +54,32 @@ export default function Mars3DView() {
         </div>
       </div>
 
-      {/* ===== CROSSHAIR ===== */}
+      {/* ===== CROSSHAIR & SMART HUD ===== */}
       <div className="crosshair" id="crosshair">
-        <span></span>
+        <div className="ch-reticle">
+          <span className="ch-bracket ch-tl"></span>
+          <span className="ch-bracket ch-tr"></span>
+          <span className="ch-bracket ch-bl"></span>
+          <span className="ch-bracket ch-br"></span>
+          <span className="ch-dot"></span>
+        </div>
+
+        {/* Circular SVG Progress Ring */}
+        <svg className="ch-progress-ring" viewBox="0 0 54 54">
+          <circle className="ch-ring-bg" cx="27" cy="27" r="23" />
+          <circle className="ch-ring-bar" id="chRingBar" cx="27" cy="27" r="23" />
+        </svg>
+
+        {/* E Key prompt in center */}
+        <div className="ch-key-badge" id="chKeyBadge">
+          <span>E</span>
+        </div>
+
+        {/* Floating Target info under reticle */}
+        <div className="ch-target-card" id="chTargetCard" style={{ display: 'none' }}>
+          <div className="ch-target-name" id="chTargetName">—</div>
+          <div className="ch-target-hint" id="chTargetHint">[ E ] Tuşunu Basılı Tut</div>
+        </div>
       </div>
 
       {/* ===== ÜST HUD ===== */}

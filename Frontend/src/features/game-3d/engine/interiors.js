@@ -126,9 +126,109 @@ function room(w, h, d, wallMat = null, floorMat = null) {
   return g;
 }
 
+/** 3D Holografik İstasyon İşareti / Billboard */
+function createHoloBeacon(title, sub, x = 0, y = 2.4, z = 0, w = 2.1) {
+  const cvs = document.createElement("canvas");
+  cvs.width = 384;
+  cvs.height = 112;
+  const ctx = cvs.getContext("2d");
+
+  // Yarı saydam koyu zemin
+  ctx.fillStyle = "rgba(10, 18, 30, 0.88)";
+  ctx.beginPath();
+  ctx.roundRect(6, 6, 372, 100, 16);
+  ctx.fill();
+
+  // Parlayan neon çerçeve
+  ctx.strokeStyle = "#38bdf8";
+  ctx.lineWidth = 3;
+  ctx.shadowColor = "#0284c7";
+  ctx.shadowBlur = 10;
+  ctx.stroke();
+
+  // [E] Tuşu rozeti
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#e2703a";
+  ctx.beginPath();
+  ctx.roundRect(16, 20, 52, 44, 8);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 24px monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("E", 42, 42);
+
+  // İstasyon Başlığı
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 20px 'Inter', sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(title, 80, 36);
+
+  // Görev Ödülü / İpucu Alt Başlık
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "bold 15px 'Inter', sans-serif";
+  ctx.fillText(sub, 80, 64);
+
+  const tex = new THREE.CanvasTexture(cvs);
+  const sp = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }),
+  );
+  sp.position.set(x, y, z);
+  sp.scale.set(w, w * 0.3, 1);
+  sp.renderOrder = 10;
+  sp.userData.isBeacon = true;
+  sp.userData.baseY = y;
+  return sp;
+}
+
+/** Zemin etkileşim halkası */
+function createFloorRing(x = 0, y = 0.04, z = 0, radius = 1.25) {
+  const geom = new THREE.RingGeometry(radius * 0.78, radius, 28);
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
+    transparent: true,
+    opacity: 0.38,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
+  const ring = new THREE.Mesh(geom, mat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(x, y, z);
+  ring.userData.isFloorRing = true;
+  return ring;
+}
+
 /** Görev istasyonu: crosshair ile nişan alınabilir hedef. */
 function station(parent, mesh, task) {
   mesh.userData = { kind: "task", task };
+  mesh.traverse((c) => {
+    c.userData.kind = "task";
+    c.userData.task = task;
+  });
+
+  // Kolay nişan alma için görünmez geniş etkileşim kutusu (hitbox)
+  const hitbox = new THREE.Mesh(
+    new THREE.BoxGeometry(2.4, 2.4, 2.4),
+    new THREE.MeshBasicMaterial({ visible: false }),
+  );
+  hitbox.position.set(0, 1.0, 0);
+  hitbox.userData = { kind: "task", task };
+  mesh.add(hitbox);
+
+  // Sera ekim yatakları hariç tüm istasyonlara belirgin 3D hologram ve zemin halkası ekle
+  if (!task.isPlot) {
+    const beacon = createHoloBeacon(
+      task.label,
+      task.rewardText || task.hint || "[E] Basılı Tut",
+      0,
+      task.beaconY || 2.4,
+      0,
+    );
+    mesh.add(beacon);
+    const ring = createFloorRing(0, 0.04, 0, task.ringRadius || 1.3);
+    mesh.add(ring);
+  }
+
   parent.add(mesh);
   return mesh;
 }
@@ -210,6 +310,8 @@ function habitatInterior() {
   g.add(box(0.9, 0.1, 4.6, mt.metalD, -3.0, 1.85, 0.1));
 
   const workSlots = [];
+  const habitatStations = [];
+
   for (let i = 0; i < 2; i++) {
     const x = -1.5 + i * 3.0;
     const desk = new THREE.Group();
@@ -230,7 +332,31 @@ function habitatInterior() {
     chair.add(box(0.5, 0.55, 0.1, mt.dark, 0, 0.85, 0.28));
     chair.add(cyl(0.08, 0.1, 0.5, mt.metal, 8).translateY(0.25));
     desk.add(chair);
-    g.add(desk);
+
+    if (i === 0) {
+      station(g, desk, {
+        id: "comms",
+        label: "İletişim & Günlük Konsolu",
+        hint: "Dünya ve yörünge üssüyle telemetri eşitle",
+        dur: 1.8,
+        effect: "comms",
+        rewardText: "+15 Moral & +5 Güç",
+        beaconY: 2.2,
+      });
+      habitatStations.push(desk);
+    } else {
+      station(g, desk, {
+        id: "medbay",
+        label: "Medikal Tarama & İlk Yardım",
+        hint: "Mürettebat biyometrik taramasını güncelle",
+        dur: 1.8,
+        effect: "medbay",
+        rewardText: "+10 Sağlık & +5 Bütünlük",
+        beaconY: 2.2,
+      });
+      habitatStations.push(desk);
+    }
+
     workSlots.push(new THREE.Vector3(x, 0, 3.4));
   }
 
@@ -257,14 +383,16 @@ function habitatInterior() {
   maint.add(box(1.6, 1.0, 0.6, mt.white, 0, 0.5, 0));
   maint.add(box(1.4, 0.7, 0.1, mt.screen, 0, 1.15, -0.2));
   maint.add(box(1.7, 0.12, 0.7, mt.metal, 0, 1.02, 0.05));
-  maint.add(label("BAKIM", 0, 2.0, 0, 1.5));
   station(g, maint, {
     id: "repair",
-    label: "Yaşam desteği bakımı",
+    label: "Yaşam Desteği ve Basınç Bakımı",
     hint: "Basınç ve ısıtma sistemini tara",
-    dur: 3.2,
+    dur: 1.8,
     effect: "repair",
+    rewardText: "+10 Bütünlük & O₂",
+    beaconY: 2.2,
   });
+  habitatStations.unshift(maint);
 
   g.add(cyl(4.06, 4.06, 0.6, mt.deck, 26).translateY(-0.3));
 
@@ -275,7 +403,7 @@ function habitatInterior() {
     doorLocal: new THREE.Vector3(0, 0, -5.1),
     floorY: 0.42,
     slots: { bed: bedSlots, work: workSlots, door: new THREE.Vector3(0, 0, -3.9) },
-    stations: [maint],
+    stations: habitatStations,
   };
 }
 
@@ -378,9 +506,11 @@ function farmInterior() {
       station(g, target, {
         id: "plot_" + p.index,
         planter: p.index,
-        label: "Ekim yatağı " + (p.index + 1),
-        dur: 2.6,
+        label: "Ekim Yatağı #" + (p.index + 1),
+        dur: 1.5,
         effect: "plot",
+        isPlot: true,
+        rewardText: "+10..42 Besin",
       });
       stations.push(target);
     }
@@ -415,13 +545,14 @@ function farmInterior() {
   water.position.y = 1.0;
   tank.add(water);
   tank.add(box(2.4, 0.2, 0.5, mt.metal, 0, 3.3, 0));
-  tank.add(label("SU TANKI", 0, 4.0, 0, 1.8));
   station(g, tank, {
     id: "water_tank",
-    label: "Su tankını doldur",
-    hint: "Sulama hattındaki basıncı yükselt",
-    dur: 2.6,
+    label: "Ana Sulama Tankı",
+    hint: "Sulama hattındaki basıncı yükselt ve depoları doldur",
+    dur: 1.8,
     effect: "water_tank",
+    rewardText: "+220 L Su",
+    beaconY: 3.8,
   });
 
   const bin = new THREE.Group();
@@ -429,26 +560,28 @@ function farmInterior() {
   bin.add(box(1.8, 1.2, 1.6, mt.metalD, 0, 0.6, 0));
   bin.add(box(1.9, 0.12, 1.7, mt.metal, 0, 1.24, 0));
   bin.add(box(1.6, 0.1, 0.4, mt.orange, 0, 0.95, -0.82));
-  bin.add(label("HASAT", 0, 2.1, 0, 1.6));
   station(g, bin, {
     id: "harvest_bin",
-    label: "Hasadı sevk et",
-    hint: "Toplanan ürünü koloni deposuna gönder",
-    dur: 2.0,
+    label: "Mahsul Sevk İstasyonu",
+    hint: "Toplanan ürünü koloni ana ambarına gönder",
+    dur: 1.8,
     effect: "harvest_bin",
+    rewardText: "+45 Besin",
+    beaconY: 2.2,
   });
 
   const seed = new THREE.Group();
   seed.position.set(-8.1, 0, -5.4);
   seed.add(box(1.6, 0.9, 1.2, mt.orange, 0, 0.45, 0));
   seed.add(box(1.7, 0.12, 1.3, mt.metal, 0, 0.92, 0));
-  seed.add(label("TOHUM", 0, 1.7, 0, 1.5));
   station(g, seed, {
     id: "seed_box",
-    label: "Tohumları hazırla",
-    hint: "Çimlenme için tohumları ıslat",
-    dur: 1.8,
+    label: "Tohum İklimlendirme Masası",
+    hint: "Çimlenme için genetik tohumları hazırla",
+    dur: 1.6,
     effect: "seed_box",
+    rewardText: "+15 Besin",
+    beaconY: 2.0,
   });
 
   const door = new THREE.Group();
@@ -497,6 +630,8 @@ function mineInterior() {
   lampStrip(g, 2.2, 3.3, 0.5);
   lampStrip(g, 2.2, 3.3, 6.5);
 
+  const stations = [];
+
   for (let i = 0; i < 5; i++) {
     const a = 1.1 + i * 1.15;
     const node = new THREE.Group();
@@ -508,12 +643,15 @@ function mineInterior() {
     }
     station(g, node, {
       id: "ore_" + i,
-      label: "Cevher damarını kaz",
-      hint: "Kazıcıyla parça ve metal çıkar",
-      dur: 3.4,
+      label: "Cevher Damarı #" + (i + 1),
+      hint: "Regolit kazıcıyla kaya ve metal çıkar",
+      dur: 1.8,
       effect: "ore",
       seam: node,
+      rewardText: "+14 Mineral",
+      beaconY: 2.0,
     });
+    stations.push(node);
   }
 
   const cart = new THREE.Group();
@@ -535,11 +673,32 @@ function mineInterior() {
   cart.add(label("TAÅIMA VAGONU", 0, 2.2, 0, 2.2));
   station(g, cart, {
     id: "cart",
-    label: "Cevheri yüzeye taşı",
-    hint: "Vagonu asansör kuyusuna gönder",
-    dur: 3.0,
+    label: "Cevher Taşıma Vagonu",
+    hint: "Dolu vagonu asansör kuyusuna gönder",
+    dur: 2.0,
     effect: "cart",
+    rewardText: "+35 Mineral",
+    beaconY: 2.3,
   });
+  stations.push(cart);
+
+  const drill = new THREE.Group();
+  drill.position.set(-1.6, 0, -2.0);
+  drill.add(box(1.4, 1.2, 1.4, mt.metalD, 0, 0.6, 0));
+  const drillBit = cyl(0.3, 0.45, 1.6, mt.metal, 8);
+  drillBit.position.y = 1.4;
+  drill.add(drillBit);
+  drill.add(box(0.8, 0.5, 0.1, mt.screen, 0, 1.1, -0.72));
+  station(g, drill, {
+    id: "drill",
+    label: "Otomatik Tünel Sondajı",
+    hint: "Delici kafayı kalibre et ve kaya kır",
+    dur: 1.8,
+    effect: "drill",
+    rewardText: "+20 Mineral",
+    beaconY: 2.4,
+  });
+  stations.push(drill);
 
   const rail = new THREE.Group();
   for (const x of [0.9, 2.3]) rail.add(box(0.1, 0.1, 17, mt.metal, x, 0.05, 0));
@@ -552,7 +711,7 @@ function mineInterior() {
     doorLocal: new THREE.Vector3(0, 0, -10.2),
     floorY: 0.2,
     slots: { bed: [], work: [], door: new THREE.Vector3(0, 0, -8.6) },
-    stations: [],
+    stations,
   };
 }
 
@@ -588,15 +747,16 @@ function labInterior() {
     t.add(sp);
     t.userData.specimen = sp;
     g.add(t);
-    g.add(label("BİYOKÜLTÜR", x, 3.2, -1.4, 1.8));
-    tanks.push(t);
     station(g, t, {
       id: "sample_" + (x > 0 ? "b" : "a"),
-      label: "Biyokültür numunesi al",
-      hint: "Tanktan analiz için numune al",
-      dur: 2.4,
+      label: (x > 0 ? "B" : "A") + " Biyokültür Tankı",
+      hint: "Analiz için organik numune al",
+      dur: 1.8,
       effect: "sample",
+      rewardText: "+15 Araştırma",
+      beaconY: 3.2,
     });
+    tanks.push(t);
   }
 
   const cons = new THREE.Group();
@@ -607,13 +767,14 @@ function labInterior() {
   cons.add(scr);
   cons.add(box(3.8, 0.14, 1.2, mt.metal, 0, 1.05, 0));
   for (let i = 0; i < 3; i++) cons.add(box(0.25, 0.1, 0.1, mt.lamp, -1 + i, 1.12, -0.45));
-  cons.add(label("ANALİZ HATTI", 0, 2.7, 0, 2.2));
   station(g, cons, {
     id: "analyze",
-    label: "Analiz çalıştır",
-    hint: "Numuneyi laboratuvar hattından geçir",
-    dur: 3.6,
+    label: "Spektrometre Analiz Konsolu",
+    hint: "Numuneyi spektrometre hattından geçir",
+    dur: 2.0,
     effect: "analyze",
+    rewardText: "+25 Araştırma",
+    beaconY: 2.8,
   });
 
   const cen = new THREE.Group();
@@ -623,13 +784,14 @@ function labInterior() {
   lid.position.y = 1.5;
   cen.add(lid);
   cen.add(box(0.6, 0.4, 0.08, mt.screen, 0, 0.9, -0.82));
-  cen.add(label("SANTRİFÜJ", 0, 2.5, 0, 2.0));
   station(g, cen, {
     id: "centrifuge",
-    label: "Santrifüjü çalıştır",
-    hint: "Hücre kültürünü ayrıştır",
-    dur: 2.8,
+    label: "Hücre Kültürü Santrifüjü",
+    hint: "Hücre kültürünü ayrıştır ve oksijen üret",
+    dur: 1.8,
     effect: "centrifuge",
+    rewardText: "+2 O₂ & +10 Araştırma",
+    beaconY: 2.5,
   });
 
   const door = new THREE.Group();
@@ -645,7 +807,7 @@ function labInterior() {
     doorLocal: new THREE.Vector3(0, 0, -6.4),
     floorY: 0.3,
     slots: { bed: [], work: [], door: new THREE.Vector3(0, 0, -5.1) },
-    stations: [],
+    stations: [...tanks, cons, cen],
     tanks,
   };
 }
@@ -658,24 +820,31 @@ function solarInterior() {
   const g = room(9.5, 3.6, 7.5, mt.metalD);
   lampStrip(g, 3, 3.3, -1.8);
   lampStrip(g, 3, 3.3, 1.8);
+
+  const stations = [];
+
   for (let i = 0; i < 4; i++) {
     g.add(box(1.6, 2.4, 0.6, mt.dark, -3 + i * 2, 1.2, -3.3));
     g.add(box(1.4, 0.6, 0.1, mt.screen, -3 + i * 2, 1.9, -2.98));
     g.add(box(0.2, 0.2, 0.1, mt.lamp, -3 + i * 2, 1.1, -2.96));
   }
+
   const inv = new THREE.Group();
   inv.position.set(2.7, 0, 1.4);
   inv.add(box(2.2, 2.4, 1.2, mt.white, 0, 1.2, 0));
   inv.add(box(1.8, 1.0, 0.1, mt.screen, 0, 1.7, -0.62));
   inv.add(box(2.4, 0.16, 1.4, mt.orange, 0, 2.45, 0));
-  inv.add(label("İNVERTÖR", 0, 3.3, 0, 2.0));
   station(g, inv, {
     id: "inverter",
-    label: "İnvertörü onar",
-    hint: "DCâ†’AC dönüştürücüyü kalibre et",
-    dur: 3.0,
+    label: "DC/AC Güç İnvertörü Kabini",
+    hint: "DC→AC frekans dönüştürücüyü kalibre et",
+    dur: 1.8,
     effect: "inverter",
+    rewardText: "+35 kWh Enerji",
+    beaconY: 3.2,
   });
+  stations.push(inv);
+
   const batt = new THREE.Group();
   batt.position.set(-2.7, 0, 1.4);
   for (let i = 0; i < 3; i++) {
@@ -685,19 +854,38 @@ function solarInterior() {
     b.add(box(0.9, 0.3, 0.1, mt.screen, 0, 1.3, -0.52));
     batt.add(b);
   }
-  batt.add(label("BATARYA BANKASI", 0, 2.6, 0, 2.4));
   station(g, batt, {
     id: "battery",
-    label: "Bataryayı şarj et",
-    hint: "Gece için enerji depolaması yap",
-    dur: 2.6,
+    label: "Ana Batarya Bankası",
+    hint: "Güneş enerjisini yüksek kapasiteli yedek bataryalara şarj et",
+    dur: 1.8,
     effect: "battery",
+    rewardText: "+25 kWh Enerji",
+    beaconY: 2.6,
   });
+  stations.push(batt);
+
+  const tracker = new THREE.Group();
+  tracker.position.set(0, 0, 2.3);
+  tracker.add(box(1.8, 1.1, 0.8, mt.metalD, 0, 0.55, 0));
+  tracker.add(box(1.5, 0.7, 0.1, mt.screen, 0, 1.25, -0.32));
+  station(g, tracker, {
+    id: "solar_tracker",
+    label: "Güneş Takip Motoru Konsolu",
+    hint: "Panellerin azimut ve eğim açısını optimize et",
+    dur: 1.6,
+    effect: "inverter",
+    rewardText: "+30 kWh Enerji",
+    beaconY: 2.4,
+  });
+  stations.push(tracker);
+
   const door = new THREE.Group();
   door.position.set(0, 0, -3.5);
   door.add(box(2.2, 2.6, 0.2, mt.metalD, 0, 1.3, 0));
   door.add(box(1.8, 2.1, 0.12, mt.glass, 0, 1.2, 0.12));
   g.add(door);
+
   return {
     type: "solar",
     group: g,
@@ -705,7 +893,7 @@ function solarInterior() {
     doorLocal: new THREE.Vector3(0, 0, -5.4),
     floorY: 0.2,
     slots: { bed: [], work: [], door: new THREE.Vector3(0, 0, -3.8) },
-    stations: [],
+    stations,
   };
 }
 
@@ -720,6 +908,8 @@ function rocketInterior() {
   g.add(box(5.4, 1.9, 0.12, mt.screen, -2.4, 2.5, -4.7));
   for (let i = 0; i < 3; i++) g.add(box(1.4, 0.9, 0.1, mt.screen, 2.4 + i * 1.5, 2.4, -4.7));
 
+  const stations = [];
+
   const cons = new THREE.Group();
   cons.position.set(0, 0, 1.8);
   cons.add(box(4.2, 1.1, 1.2, mt.metalD, 0, 0.55, 0));
@@ -727,14 +917,16 @@ function rocketInterior() {
   scr.rotation.x = 0.16;
   cons.add(scr);
   for (let i = 0; i < 3; i++) cons.add(box(0.3, 0.12, 0.12, mt.lamp, -1 + i, 1.15, -0.5));
-  cons.add(label("FIRLATMA KONSOLU", 0, 3.0, 0, 2.6));
   station(g, cons, {
     id: "launch_console",
-    label: "Fırlatma sırasını hazırla",
-    hint: "Yörünge penceresini kilitle",
-    dur: 4.0,
+    label: "Fırlatma & Telemetri Konsolu",
+    hint: "Yörünge uydusuyla haberleşme penceresini kilitle",
+    dur: 2.0,
     effect: "launch",
+    rewardText: "Kule Seviyesi +1 & Bütünlük",
+    beaconY: 3.0,
   });
+  stations.push(cons);
 
   const fuel = new THREE.Group();
   fuel.position.set(3.8, 0, -2.6);
@@ -746,14 +938,31 @@ function rocketInterior() {
     cap.position.set(i * 1.7 - 0.85, 2.62, 0);
     fuel.add(cap);
   }
-  fuel.add(label("YAKIT TANKLARI", 0, 3.5, 0, 2.2));
   station(g, fuel, {
     id: "fuel",
-    label: "Yakıtı yükle",
-    hint: "Oksijen ve metan tanklarını doldur",
-    dur: 3.6,
+    label: "Kriyojenik Yakıt Terminali",
+    hint: "Sıvı metan ve oksijen tanklarını doldur ve basınçlandır",
+    dur: 1.8,
     effect: "fuel",
+    rewardText: "+15 Bütünlük",
+    beaconY: 3.4,
   });
+  stations.push(fuel);
+
+  const cargo = new THREE.Group();
+  cargo.position.set(-3.8, 0, -2.6);
+  cargo.add(box(2.2, 1.4, 1.8, mt.metalD, 0, 0.7, 0));
+  cargo.add(box(2.3, 0.15, 1.9, mt.orange, 0, 1.45, 0));
+  station(g, cargo, {
+    id: "cargo",
+    label: "Yörünge Kargo Terminali",
+    hint: "Dünya'ya gidecek bilimsel numuneleri mühürle",
+    dur: 1.8,
+    effect: "cargo",
+    rewardText: "+20 Bütünlük",
+    beaconY: 2.5,
+  });
+  stations.push(cargo);
 
   const door = new THREE.Group();
   door.position.set(0, 0, -4.8);
@@ -768,7 +977,99 @@ function rocketInterior() {
     doorLocal: new THREE.Vector3(0, 0, -6.4),
     floorY: 0.3,
     slots: { bed: [], work: [], door: new THREE.Vector3(0, 0, -5.1) },
-    stations: [],
+    stations,
+  };
+}
+
+/* ---------------------------------------------------------------- */
+/* 7) WATER — yeraltı buzul eritme & su sondaj istasyonu              */
+/* ---------------------------------------------------------------- */
+function waterInterior() {
+  const mt = mats();
+  const g = room(12, 4.4, 9, mt.wall);
+  lampStrip(g, 3.5, 4.0, -2.2);
+  lampStrip(g, 3.5, 4.0, 2.2);
+
+  const stations = [];
+
+  // 1) Sondaj Pompası
+  const pump = new THREE.Group();
+  pump.position.set(0, 0, 0);
+  pump.add(cyl(1.4, 1.6, 0.8, mt.metalD, 16).translateY(0.4));
+  const pipe = cyl(0.4, 0.4, 3.2, mt.metal, 12);
+  pipe.position.y = 1.6;
+  pump.add(pipe);
+  const motor = box(1.2, 1.0, 1.2, mt.orange, 0, 2.4, 0);
+  pump.add(motor);
+  const core = cyl(0.6, 0.6, 1.0, mt.water, 12);
+  core.position.y = 1.0;
+  pump.add(core);
+  station(g, pump, {
+    id: "water_pump",
+    label: "Buz Eritme ve Sondaj Pompası",
+    hint: "Derin buzul katmanından termal su çek",
+    dur: 1.8,
+    effect: "water_pump",
+    rewardText: "+180 L Su",
+    beaconY: 3.2,
+  });
+  stations.push(pump);
+
+  // 2) Filtrasyon Ünitesi
+  const filter = new THREE.Group();
+  filter.position.set(4.2, 0, 1.8);
+  for (let i = 0; i < 3; i++) {
+    const col = cyl(0.45, 0.45, 2.4, mt.white, 12);
+    col.position.set((i - 1) * 0.9, 1.2, 0);
+    filter.add(col);
+    const colCap = cyl(0.5, 0.5, 0.2, mt.metalD, 12);
+    colCap.position.set((i - 1) * 0.9, 2.4, 0);
+    filter.add(colCap);
+  }
+  filter.add(box(3.0, 0.15, 1.0, mt.metal, 0, 2.5, 0));
+  station(g, filter, {
+    id: "water_filter",
+    label: "Moleküler Filtrasyon Ünitesi",
+    hint: "Tuz ve mineralleri arıt",
+    dur: 1.8,
+    effect: "water_filter",
+    rewardText: "+120 L Su",
+    beaconY: 3.2,
+  });
+  stations.push(filter);
+
+  // 3) Basınç Dengeleme Vanası
+  const valve = new THREE.Group();
+  valve.position.set(-4.2, 0, 1.8);
+  valve.add(box(1.8, 1.2, 0.8, mt.metalD, 0, 0.6, 0));
+  const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.08, 6, 16), mt.orange);
+  wheel.position.set(0, 1.4, -0.4);
+  valve.add(wheel);
+  station(g, valve, {
+    id: "water_valve",
+    label: "Basınç Dengeleme Vanası",
+    hint: "Ana rezervuar hattı basıncını eşitle",
+    dur: 1.6,
+    effect: "water_valve",
+    rewardText: "+80 L Su",
+    beaconY: 2.4,
+  });
+  stations.push(valve);
+
+  const door = new THREE.Group();
+  door.position.set(0, 0, -4.3);
+  door.add(box(2.4, 2.8, 0.2, mt.metalD, 0, 1.4, 0));
+  door.add(box(2.0, 2.3, 0.12, mt.orange, 0, 1.3, 0.12));
+  g.add(door);
+
+  return {
+    type: "water",
+    group: g,
+    radius: 4.8,
+    doorLocal: new THREE.Vector3(0, 0, -6.0),
+    floorY: 0.3,
+    slots: { bed: [], work: [], door: new THREE.Vector3(0, 0, -4.6) },
+    stations,
   };
 }
 
@@ -779,6 +1080,7 @@ const FACTORIES = {
   lab: labInterior,
   solar: solarInterior,
   rocket: rocketInterior,
+  water: waterInterior,
 };
 
 export function hasInterior(type) {
