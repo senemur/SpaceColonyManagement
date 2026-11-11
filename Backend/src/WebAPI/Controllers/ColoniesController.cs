@@ -2,6 +2,7 @@ namespace WebAPI.Controllers;
 
 using Application.Features.Colonies.Commands.Create;
 using Application.Features.Colonies.Commands.NextSol;
+using Application.Features.Colonies.Commands.PerformAction;
 using Application.Features.Colonies.Commands.ProcessOfflineProgress;
 using Application.Features.Colonies.Queries.GetOverview;
 using Microsoft.AspNetCore.Mvc;
@@ -49,6 +50,17 @@ public class ColoniesController : BaseController
         OfflineProgressResponse result = await Mediator.Send(
             new ProcessOfflineProgressCommand { ColonyId = id }
         );
+        return Ok(result);
+    }
+
+    [HttpPost("{id}/action")]
+    public async Task<IActionResult> PerformAction(
+        [FromRoute] int id,
+        [FromBody] PerformColonyActionCommand command
+    )
+    {
+        command.ColonyId = id;
+        PerformColonyActionResponse result = await Mediator.Send(command);
         return Ok(result);
     }
 }

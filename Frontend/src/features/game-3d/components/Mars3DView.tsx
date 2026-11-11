@@ -1,18 +1,40 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { initMars3D } from '../engine/mars3d';
+import { useColonyOverview } from '@/features/colony/api/colonyApi';
+import { useBuildings } from '@/features/buildings/api/buildingsApi';
+import { useColonists } from '@/features/colonists/api/colonistsApi';
+import BuildingInspectPanel from './BuildingInspectPanel';
 
 export default function Mars3DView() {
+  const { data: colonyOverview } = useColonyOverview();
+  const { data: buildings } = useBuildings(1);
+  const { data: colonists } = useColonists(1);
+  const [currentBuilding, setCurrentBuilding] = useState<{ name: string; id?: number } | null>(null);
+
   useEffect(() => {
-    // Run the full 3D Mars scene simulation engine
-    const cleanup = initMars3D();
+    // Run the full 3D Mars scene simulation engine connected with backend data
+    const cleanup = initMars3D({
+      initialColony: colonyOverview,
+      initialBuildings: buildings,
+      initialColonists: colonists,
+      onEnterBuilding: (b: { name: string; id?: number }) => setCurrentBuilding(b),
+      onExitBuilding: () => setCurrentBuilding(null),
+    });
 
     return () => {
       if (cleanup) cleanup();
     };
-  }, []);
+  }, [colonyOverview, buildings, colonists]);
+
+  const handleExitBuilding = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', code: 'KeyQ' }));
+    }
+    setCurrentBuilding(null);
+  };
 
   return (
     <div className="mars3d-container">
@@ -80,6 +102,15 @@ export default function Mars3DView() {
 
       {/* ===== İÇ MEKÂN GÖREV PANELİ ===== */}
       <div className="taskpanel glass" id="taskpanel" hidden></div>
+
+      {/* ===== REACT İÇ MEKAN GÖREV VE AKSİYON PANELİ ===== */}
+      {currentBuilding && (
+        <BuildingInspectPanel
+          buildingName={currentBuilding.name}
+          buildingId={currentBuilding.id}
+          onExitBuilding={handleExitBuilding}
+        />
+      )}
 
       {/* ===== SOL TARAF: KİŞİ LİSTESİ ===== */}
       <aside className="roster glass" id="roster">

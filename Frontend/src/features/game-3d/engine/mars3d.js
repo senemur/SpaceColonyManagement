@@ -1,8 +1,19 @@
 import * as THREE from "three";
 import { createColony, BUILD_DEFS, COLOR, rnd, irnd, clamp, fmt } from "./colonyData.js";
 import { buildInterior } from "./interiors.js";
+import { performColonyAction } from "@/features/colony/api/colonyApi";
+import { axiosClient } from "@/shared/api/axiosClient";
 
-export function initMars3D() {
+export function initMars3D(options = {}) {
+  const {
+    initialColony = null,
+    initialBuildings = null,
+    initialColonists = null,
+    onColonyAction = null,
+    onEnterBuilding = null,
+    onExitBuilding = null,
+  } = options || {};
+
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const listeners = [];
@@ -12,7 +23,73 @@ export function initMars3D() {
   };
 
   const WORLD = 260;
-  const colony = createColony();
+  const colony = createColony(initialColony, initialBuildings, initialColonists);
+
+  function updateTopHud() {
+    const seasons = ["İlkbahar", "Yaz", "Sonbahar", "Kış"];
+    if ($("#solNum")) $("#solNum").textContent = colony.sol;
+    if ($("#season"))
+      $("#season").textContent =
+        `${seasons[Math.floor(colony.sol / 68) % 4]} · Ls ${colony.sol % 360}°`;
+    if ($("#o2")) $("#o2").textContent = colony.res.oksijen.v.toFixed(0) + "%";
+    if ($("#o2bar i")) $("#o2bar i").style.width = colony.res.oksijen.v + "%";
+    if ($("#su")) $("#su").textContent = fmt(colony.res.su.v) + " L";
+    if ($("#pwr")) $("#pwr").textContent = fmt(colony.res.enerji.v) + " kWh";
+    if ($("#weather b"))
+      $("#weather b").textContent = `${(-63 - Math.sin(colony.sol / 18) * 12).toFixed(0)}°C`;
+  }
+
+  // Background fetch to sync with backend if initial data was null or needs sync
+  (async () => {
+    try {
+      const overviewRes = await axiosClient.get("/colonies/overview?id=1");
+      if (overviewRes?.data?.stats) {
+        const stats = overviewRes.data.stats;
+        colony.sol = stats.sol;
+        colony.res.besin.v = Number(stats.food);
+        colony.res.su.v = Number(stats.water);
+        colony.res.enerji.v = Number(stats.power);
+        colony.res.oksijen.v = Number(stats.oxygen);
+        colony.res.parca.v = Number(stats.minerals);
+        updateTopHud();
+      }
+    } catch {
+      // Backend may be offline or in fallback
+    }
+  })();
+
+  async function triggerColonyAction(actionType, amount = 0, buildingId = null) {
+    try {
+      const res = await performColonyAction(1, actionType, amount, buildingId);
+      if (res && res.stats) {
+        colony.sol = res.stats.sol;
+        colony.res.besin.v = Number(res.stats.food);
+        colony.res.su.v = Number(res.stats.water);
+        colony.res.enerji.v = Number(res.stats.power);
+        colony.res.oksijen.v = Number(res.stats.oxygen);
+        colony.res.parca.v = Number(res.stats.minerals);
+        updateTopHud();
+      }
+      if (onColonyAction) onColonyAction(res);
+      return res;
+    } catch (err) {
+      console.warn("Colony action backend call fallback:", err);
+    }
+  }
+
+  const onExternalColonyAction = (e) => {
+    const res = e.detail;
+    if (res && res.stats) {
+      colony.sol = res.stats.sol;
+      colony.res.besin.v = Number(res.stats.food);
+      colony.res.su.v = Number(res.stats.water);
+      colony.res.enerji.v = Number(res.stats.power);
+      colony.res.oksijen.v = Number(res.stats.oxygen);
+      colony.res.parca.v = Number(res.stats.minerals);
+      updateTopHud();
+    }
+  };
+  addEvt(window, "colony-action-completed", onExternalColonyAction);
 
   /* ---------------- SAHNE ---------------- */
   const scene = new THREE.Scene();
@@ -1168,6 +1245,7 @@ export function initMars3D() {
     const roster = $("#roster");
     if (roster) roster.classList.add("collapsed");
     toast(`<b>${h.b.n}</b> içeri girdin · ${h.hint} · <kbd>Q</kbd> ile dışarı çık`, "ok");
+    if (onEnterBuilding) onEnterBuilding({ name: h.b.n, id: h.b.id, type: h.type });
   }
 
   function exitInterior() {
@@ -1199,6 +1277,7 @@ export function initMars3D() {
     const roster = $("#roster");
     if (roster) roster.classList.remove("collapsed");
     toast(`<b>${h.b.n}</b> dışına çıktın — basınç kaybetmeden çıkıldı`, "warn");
+    if (onExitBuilding) onExitBuilding();
   }
 
   const canvas = renderer.domElement;
@@ -1721,10 +1800,13 @@ export function initMars3D() {
           toast(`Yatak ${p.index + 1}: tohum eklendi · otlar çıktı — <b>çapala</b>`, "ok");
         } else if (p.weeds.visible) {
           p.weeds.visible = false;
-          toast(`Yatak ${p.index + 1}: otlar çapalandı`, "ok");
+          gain("besin", 10);
+          triggerColonyAction("HarvestFood", 10, b.id);
+          toast(`Yatak ${p.index + 1}: otlar çapalandı · +10 kg besin`, "ok");
         } else if (p.stage === "growing") {
           if (p.water < 0.5) {
             p.water = 1;
+            triggerColonyAction("ExtractWater", 15, b.id);
             toast(`Yatak ${p.index + 1}: sulandı 💧`, "ok");
           } else {
             p.growth = Math.min(1, p.growth + 0.3);
@@ -1739,24 +1821,25 @@ export function initMars3D() {
           p.harvested = (p.harvested || 0) + 42;
           p.plant.visible = false;
           p.weeds.visible = false;
-          toast(`Yatak ${p.index + 1}: <b>hasat</b> edildi · +42 ürün (kasaya)`, "ok");
+          gain("besin", 42);
+          triggerColonyAction("HarvestFood", 42, b.id);
+          toast(`Yatak ${p.index + 1}: <b>hasat</b> edildi · +42 kg besin depolara aktarıldı`, "ok");
         }
         break;
       }
       case "water_tank":
         gain("su", 220);
         h.planters.forEach((p) => (p.water = 1));
-        toast("Su tankı doldu · +220 L", "ok");
+        triggerColonyAction("ExtractWater", 220, b.id);
+        toast("Su tankı doldu · +220 L su depolandı", "ok");
         break;
       case "harvest_bin": {
         const total = h.planters.reduce((s, p) => s + (p.harvested || 0), 0);
-        if (total <= 0) {
-          toast("Önce olgunlaşmış bitkileri hasat et", "warn");
-          return;
-        }
+        const amount = total > 0 ? Math.round(total * 0.4) : 45;
         h.planters.forEach((p) => (p.harvested = 0));
-        gain("besin", Math.round(total * 0.4));
-        toast(`Hasat koloni deposuna sevk edildi · +${Math.round(total * 0.4)} besin`, "ok");
+        gain("besin", amount);
+        triggerColonyAction("HarvestFood", amount, b.id);
+        toast(`Hasat koloni deposuna sevk edildi · +${amount} kg besin`, "ok");
         break;
       }
       case "seed_box":
@@ -1765,50 +1848,61 @@ export function initMars3D() {
           p.growth = clamp(p.growth + 0.1, 0, 1);
           if (p.growth >= 1) p.stage = "ripe";
         });
+        triggerColonyAction("HarvestFood", 15, b.id);
         toast("Tohumlar ıslatıldı · büyüme hızlandı", "ok");
         break;
       case "ore":
         if (task.seam) task.seam.scale.multiplyScalar(0.75);
         gain("parça", 14);
         b.hp = clamp(b.hp - 1.5, 10, 100);
-        toast("Cevher çıkarıldı · +14 parça", "ok");
+        triggerColonyAction("MineOre", 14, b.id);
+        toast("Cevher çıkarıldı · +14 mineral", "ok");
         break;
       case "cart":
-        gain("parça", 8);
-        toast("Vagon yüzeye kalktı · +8 parça", "ok");
+        gain("parça", 25);
+        triggerColonyAction("MineOre", 25, b.id);
+        toast("Vagon yüzeye kalktı · +25 mineral", "ok");
         break;
       case "sample":
         b.hp = clamp(b.hp + 1, 0, 100);
-        toast("Biyokültür numunesi alındı", "ok");
+        triggerColonyAction("ResearchProgress", 10, b.id);
+        toast("Biyokültür numunesi alındı · Araştırma ilerletildi", "ok");
         break;
       case "analyze":
         gain("enerji", 6);
-        toast("Analiz tamamlandı · +6 enerji", "ok");
+        triggerColonyAction("ResearchProgress", 20, b.id);
+        toast("Analiz tamamlandı · Araştırma ilerletildi", "ok");
         break;
       case "centrifuge":
         gain("oksijen", 1.5);
+        triggerColonyAction("GeneratePower", 15, b.id);
         toast("Santrifüj çalıştı · +1.5 oksijen", "ok");
         break;
       case "inverter":
         b.hp = clamp(b.hp + 6, 0, 100);
-        gain("enerji", 18);
-        toast("İnvertör kalibre edildi · +18 enerji", "ok");
+        gain("enerji", 35);
+        triggerColonyAction("GeneratePower", 35, b.id);
+        toast("İnvertör kalibre edildi · +35 kWh enerji", "ok");
         break;
       case "battery":
-        gain("enerji", 10);
-        toast("Bataryalar şarj edildi · +10 enerji", "ok");
+        gain("enerji", 25);
+        triggerColonyAction("GeneratePower", 25, b.id);
+        toast("Bataryalar şarj edildi · +25 kWh enerji", "ok");
         break;
       case "fuel":
         b.hp = clamp(b.hp + 4, 0, 100);
+        triggerColonyAction("RepairBuilding", 15, b.id);
         toast("Yakıt tankları dolduruldu", "ok");
         break;
       case "launch":
         b.lvl = Math.min(9, b.lvl + 1);
-        toast(`<b>Fırlatma sırası hazır!</b> Fırlatma Kullesi → Sv ${b.lvl}`, "ok");
+        triggerColonyAction("RepairBuilding", 50, b.id);
+        toast(`<b>Fırlatma sırası hazır!</b> Fırlatma Kulesi → Sv ${b.lvl}`, "ok");
         break;
       case "repair":
       default:
         b.hp = clamp(b.hp + 8, 0, 100);
+        triggerColonyAction("RepairBuilding", 20, b.id);
         toast(`Bakım tamamlandı · ${b.n} bütünlüğü %${b.hp.toFixed(0)}`, "ok");
         break;
     }

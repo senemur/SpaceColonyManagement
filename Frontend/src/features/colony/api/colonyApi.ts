@@ -129,3 +129,60 @@ export const useOfflineProgress = (colonyId: number = 1) => {
     },
   });
 };
+
+export interface PerformColonyActionRequest {
+  actionType: string;
+  amount?: number;
+  buildingId?: number;
+  description?: string;
+}
+
+export interface PerformColonyActionResponse {
+  success: boolean;
+  message: string;
+  actionType: string;
+  resourceGained: number;
+  resourceType: string;
+  stats: ColonyStats;
+}
+
+export const performColonyAction = async (
+  colonyId: number = 1,
+  actionType: string,
+  amount: number = 0,
+  buildingId?: number,
+  description?: string
+): Promise<PerformColonyActionResponse> => {
+  const res = await axiosClient.post<PerformColonyActionResponse>(`/colonies/${colonyId}/action`, {
+    colonyId,
+    actionType,
+    amount,
+    buildingId,
+    description,
+  });
+  return res.data;
+};
+
+export const usePerformColonyAction = (colonyId: number = 1) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      actionType,
+      amount,
+      buildingId,
+      description,
+    }: {
+      actionType: string;
+      amount?: number;
+      buildingId?: number;
+      description?: string;
+    }) => performColonyAction(colonyId, actionType, amount, buildingId, description),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['colony'] });
+      queryClient.invalidateQueries({ queryKey: ['buildings'] });
+      queryClient.invalidateQueries({ queryKey: ['colonists'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['research'] });
+    },
+  });
+};

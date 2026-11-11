@@ -24,7 +24,7 @@ public static class DbInitializer
                 Stats = new ColonyStats
                 {
                     Sol = 2,
-                    Population = 2,
+                    Population = 6,
                     MaxPopulation = 25,
                     Power = 250,
                     MaxPower = 250,
@@ -50,13 +50,89 @@ public static class DbInitializer
                 BuildingType = BuildingType.SolarPanel,
                 Level = 3,
                 Health = 100,
-                Workers = 0,
+                Workers = 1,
                 MaxWorkers = 7,
                 PowerConsumption = 0,
                 PowerProduction = 338,
                 IsActive = true
             };
-            context.Buildings.Add(solarBuilding);
+
+            var habitatBuilding = new Building
+            {
+                Id = 2,
+                ColonyId = 1,
+                Name = "Ares Yaşam Modülü",
+                BuildingType = BuildingType.Habitat,
+                Level = 2,
+                Health = 96,
+                Workers = 1,
+                MaxWorkers = 6,
+                PowerConsumption = 15,
+                PowerProduction = 0,
+                IsActive = true
+            };
+
+            var farmBuilding = new Building
+            {
+                Id = 3,
+                ColonyId = 1,
+                Name = "Hidroponik Tarım Serası",
+                BuildingType = BuildingType.Greenhouse,
+                Level = 1,
+                Health = 95,
+                Workers = 1,
+                MaxWorkers = 4,
+                PowerConsumption = 20,
+                PowerProduction = 0,
+                IsActive = true
+            };
+
+            var waterBuilding = new Building
+            {
+                Id = 4,
+                ColonyId = 1,
+                Name = "Yeraltı Su Sondaj İstasyonu",
+                BuildingType = BuildingType.WaterExtractor,
+                Level = 1,
+                Health = 90,
+                Workers = 0,
+                MaxWorkers = 3,
+                PowerConsumption = 25,
+                PowerProduction = 0,
+                IsActive = true
+            };
+
+            var mineBuilding = new Building
+            {
+                Id = 5,
+                ColonyId = 1,
+                Name = "Regolit Maden Ocağı",
+                BuildingType = BuildingType.Mine,
+                Level = 1,
+                Health = 85,
+                Workers = 1,
+                MaxWorkers = 4,
+                PowerConsumption = 30,
+                PowerProduction = 0,
+                IsActive = true
+            };
+
+            var labBuilding = new Building
+            {
+                Id = 6,
+                ColonyId = 1,
+                Name = "Mars Araştırma Laboratuvarı",
+                BuildingType = BuildingType.ResearchLab,
+                Level = 1,
+                Health = 92,
+                Workers = 1,
+                MaxWorkers = 3,
+                PowerConsumption = 35,
+                PowerProduction = 0,
+                IsActive = true
+            };
+
+            context.Buildings.AddRange(solarBuilding, habitatBuilding, farmBuilding, waterBuilding, mineBuilding, labBuilding);
 
             var colonist1 = new Colonist
             {
@@ -67,7 +143,7 @@ public static class DbInitializer
                 Health = 100,
                 Morale = 100,
                 Stamina = 100,
-                BuildingId = null
+                BuildingId = 6
             };
             var colonist2 = new Colonist
             {
@@ -78,9 +154,53 @@ public static class DbInitializer
                 Health = 100,
                 Morale = 100,
                 Stamina = 100,
-                BuildingId = null
+                BuildingId = 2
             };
-            context.Colonists.AddRange(colonist1, colonist2);
+            var colonist3 = new Colonist
+            {
+                Id = 3,
+                ColonyId = 1,
+                Name = "Mert Arslan",
+                Role = ColonistRole.Biologist,
+                Health = 95,
+                Morale = 90,
+                Stamina = 95,
+                BuildingId = 3
+            };
+            var colonist4 = new Colonist
+            {
+                Id = 4,
+                ColonyId = 1,
+                Name = "Deniz Kaya",
+                Role = ColonistRole.Miner,
+                Health = 90,
+                Morale = 85,
+                Stamina = 90,
+                BuildingId = 5
+            };
+            var colonist5 = new Colonist
+            {
+                Id = 5,
+                ColonyId = 1,
+                Name = "Ayşe Yılmaz",
+                Role = ColonistRole.Engineer,
+                Health = 95,
+                Morale = 95,
+                Stamina = 90,
+                BuildingId = 1
+            };
+            var colonist6 = new Colonist
+            {
+                Id = 6,
+                ColonyId = 1,
+                Name = "Can Öztürk",
+                Role = ColonistRole.Doctor,
+                Health = 100,
+                Morale = 95,
+                Stamina = 100,
+                BuildingId = 2
+            };
+            context.Colonists.AddRange(colonist1, colonist2, colonist3, colonist4, colonist5, colonist6);
 
             var event1 = new ColonyEvent
             {
