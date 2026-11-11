@@ -6,6 +6,7 @@ using Application.Tests.Mocks.Repositories.Buildings;
 using Application.Tests.Mocks.Repositories.Colonies;
 using Application.Tests.Mocks.Repositories.Colonists;
 using Application.Tests.Mocks.Repositories.Events;
+using Application.Tests.Mocks.Repositories.Exploration;
 using Application.Tests.Mocks.Repositories.Research;
 using Core.CrossCuttingConcerns.Exception.Types;
 using Xunit;
@@ -17,6 +18,7 @@ public class ProcessOfflineProgressTests
     private readonly ColonistMockRepository _colonistMock;
     private readonly TechnologyMockRepository _technologyMock;
     private readonly ColonyEventMockRepository _eventMock;
+    private readonly ExplorationMissionMockRepository _explorationMock;
     private readonly ProcessOfflineProgressCommand _command;
     private readonly ProcessOfflineProgressCommand.ProcessOfflineProgressCommandHandler _handler;
 
@@ -26,6 +28,7 @@ public class ProcessOfflineProgressTests
         ColonistFakeData colonistFakeData,
         TechnologyFakeData technologyFakeData,
         ColonyEventFakeData eventFakeData,
+        ExplorationMissionFakeData explorationFakeData,
         ProcessOfflineProgressCommand command
     )
     {
@@ -34,6 +37,7 @@ public class ProcessOfflineProgressTests
         _colonistMock = new ColonistMockRepository(colonistFakeData);
         _technologyMock = new TechnologyMockRepository(technologyFakeData);
         _eventMock = new ColonyEventMockRepository(eventFakeData);
+        _explorationMock = new ExplorationMissionMockRepository(explorationFakeData);
         _command = command;
 
         _handler = new ProcessOfflineProgressCommand.ProcessOfflineProgressCommandHandler(
@@ -42,6 +46,7 @@ public class ProcessOfflineProgressTests
             _colonistMock.MockRepository.Object,
             _technologyMock.MockRepository.Object,
             _eventMock.MockRepository.Object,
+            _explorationMock.MockRepository.Object,
             _colonyMock.BusinessRules
         );
     }

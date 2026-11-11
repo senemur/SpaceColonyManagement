@@ -16,6 +16,7 @@ public class ProcessOfflineProgressCommand : IRequest<OfflineProgressResponse>
         IColonistRepository colonistRepository,
         ITechnologyRepository technologyRepository,
         IColonyEventRepository colonyEventRepository,
+        IExplorationMissionRepository explorationMissionRepository,
         ColonyBusinessRules colonyBusinessRules
     ) : IRequestHandler<ProcessOfflineProgressCommand, OfflineProgressResponse>
     {
@@ -84,6 +85,13 @@ public class ProcessOfflineProgressCommand : IRequest<OfflineProgressResponse>
                 cancellationToken: cancellationToken
             );
             var activeEvents = activeEventsData.Items.ToList();
+
+            var activeMissionsData = await explorationMissionRepository.GetListAsync(
+                predicate: m => m.ColonyId == request.ColonyId && m.Status == MissionStatus.InProgress,
+                size: 20,
+                cancellationToken: cancellationToken
+            );
+            var activeMissions = activeMissionsData.Items.ToList();
 
             var stats = colony.Stats;
             decimal prevPower = stats.Power;
@@ -207,6 +215,24 @@ public class ProcessOfflineProgressCommand : IRequest<OfflineProgressResponse>
                         response.Details.Add($"Bilimsel araştırma tamamlandı: {activeResearch.Name}!");
                     }
                     await technologyRepository.UpdateAsync(activeResearch);
+                }
+
+                // Aktif Keşif Görevleri İlerlemesi
+                foreach (var mission in activeMissions)
+                {
+                    mission.RemainingSols -= solsAdvanced;
+                    if (mission.RemainingSols <= 0)
+                    {
+                        mission.RemainingSols = 0;
+                        mission.CompletedSol = stats.Sol;
+                        mission.Status = MissionStatus.Completed;
+                        stats.Minerals += mission.RewardMinerals;
+                        stats.Water = Math.Clamp(stats.Water + mission.RewardWater, 0, stats.MaxWater);
+                        stats.Credits += mission.RewardCredits;
+                        mission.ResultSummary = $"Çevrimdışı sürede keşif tamamlandı! {mission.RewardDescription} üsse ulaştı.";
+                        response.Details.Add($"Keşif ekibi üsse döndü: '{mission.Name}' (+{mission.RewardMinerals} Maden, +{mission.RewardWater} Su).");
+                    }
+                    await explorationMissionRepository.UpdateAsync(mission);
                 }
             }
 

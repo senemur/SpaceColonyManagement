@@ -1,34 +1,64 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { axiosClient } from '@/shared/api/axiosClient';
 
-export interface Mission {
-  id: string;
+export interface ExplorationMission {
+  id: number;
+  colonyId: number;
   name: string;
-  target: string;
-  reward: string;
-  risk: 'Düşük' | 'Orta' | 'Yüksek';
-  duration: string;
-  status: 'Hazır' | 'Devam Ediyor' | 'Tamamlandı';
+  targetZone: string;
+  description: string;
+  riskLevel: number; // 1: Low, 2: Medium, 3: High
+  riskLevelName: string; // "Düşük", "Orta", "Yüksek"
+  status: number; // 1: Available, 2: InProgress, 3: Completed, 4: Failed
+  statusName: string; // "Hazır", "Devam Ediyor", "Tamamlandı", "Başarısız"
+  durationInSols: number;
+  remainingSols: number;
+  energyCost: number;
+  waterCost: number;
+  creditsCost: number;
+  rewardMinerals: number;
+  rewardWater: number;
+  rewardCredits: number;
+  rewardDescription: string;
+  resultSummary?: string | null;
+  startSol?: number | null;
+  completedSol?: number | null;
 }
 
-export const mockMissions: Mission[] = [
-  { id: 'm1', name: 'Olympus Mons Vadi Taraması', target: 'Kuzey Sektörü 4', reward: '+350 Maden, +100 Su', risk: 'Orta', duration: '2 Sol', status: 'Hazır' },
-  { id: 'm2', name: 'Görünmeyen Kanyon Buz Analizi', target: 'Güney Krateri', reward: '+500 Su Buz Kristali', risk: 'Düşük', duration: '1 Sol', status: 'Hazır' },
-  { id: 'm3', name: 'Eski Yeraltı Mağara Araştırması', target: 'Derin Mağara B-9', reward: '+200 Nadir Element, Gizemli Artefakt', risk: 'Yüksek', duration: '3 Sol', status: 'Hazır' },
-];
-
-export const fetchMissions = async (): Promise<Mission[]> => {
+export const fetchMissions = async (colonyId: number = 1): Promise<ExplorationMission[]> => {
   try {
-    const res = await axiosClient.get<Mission[]>('/exploration/missions');
+    const res = await axiosClient.get<ExplorationMission[]>(`/exploration/colony/${colonyId}`);
     return res.data;
-  } catch {
-    return mockMissions;
+  } catch (err) {
+    console.error('Failed to fetch exploration missions from backend:', err);
+    return [];
   }
 };
 
-export const useMissions = () => {
+export const useMissions = (colonyId: number = 1) => {
   return useQuery({
-    queryKey: ['exploration', 'missions'],
-    queryFn: fetchMissions,
+    queryKey: ['exploration', 'missions', colonyId],
+    queryFn: () => fetchMissions(colonyId),
+    refetchInterval: 5000,
+  });
+};
+
+export const startMission = async (colonyId: number, missionId: number): Promise<ExplorationMission> => {
+  const res = await axiosClient.post<ExplorationMission>('/exploration/start', {
+    colonyId,
+    missionId,
+  });
+  return res.data;
+};
+
+export const useStartMission = (colonyId: number = 1) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (missionId: number) => startMission(colonyId, missionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exploration'] });
+      queryClient.invalidateQueries({ queryKey: ['colony'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
   });
 };

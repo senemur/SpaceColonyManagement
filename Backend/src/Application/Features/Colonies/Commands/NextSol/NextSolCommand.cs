@@ -18,6 +18,7 @@ public class NextSolCommand : IRequest<NextSolResponse>
         IColonistRepository colonistRepository,
         ITechnologyRepository technologyRepository,
         IColonyEventRepository colonyEventRepository,
+        IExplorationMissionRepository explorationMissionRepository,
         ColonyBusinessRules colonyBusinessRules
     ) : IRequestHandler<NextSolCommand, NextSolResponse>
     {
@@ -61,6 +62,13 @@ public class NextSolCommand : IRequest<NextSolResponse>
                 cancellationToken: cancellationToken
             );
             var activeEvents = activeEventsData.Items.ToList();
+
+            var activeMissionsData = await explorationMissionRepository.GetListAsync(
+                predicate: m => m.ColonyId == request.ColonyId && m.Status == MissionStatus.InProgress,
+                size: 20,
+                cancellationToken: cancellationToken
+            );
+            var activeMissions = activeMissionsData.Items.ToList();
 
             var response = new NextSolResponse();
             var stats = colony!.Stats;
@@ -164,6 +172,70 @@ public class NextSolCommand : IRequest<NextSolResponse>
                     response.LogMessages.Add(
                         $"🔬 Laboratuvar: '{activeResearch.Name}' araştırması sürüyor (%{activeResearch.Progress:0.0} tamamlandı)."
                     );
+                }
+            }
+
+            // 5.1 KEŞİF GÖREVLERİ SÜRE & SONUÇ YÖNETİMİ (Sprint 9: Exploration missions)
+            foreach (var mission in activeMissions)
+            {
+                mission.RemainingSols -= 1;
+                if (mission.RemainingSols <= 0)
+                {
+                    mission.CompletedSol = stats.Sol;
+
+                    int roll = Random.Shared.Next(1, 101);
+                    int successThreshold = mission.RiskLevel switch
+                    {
+                        MissionRiskLevel.Low => 95,
+                        MissionRiskLevel.Medium => 80,
+                        MissionRiskLevel.High => 65,
+                        _ => 80
+                    };
+
+                    if (roll <= successThreshold)
+                    {
+                        mission.Status = MissionStatus.Completed;
+                        stats.Minerals += mission.RewardMinerals;
+                        stats.Water = Math.Clamp(stats.Water + mission.RewardWater, 0, stats.MaxWater);
+                        stats.Credits += mission.RewardCredits;
+                        mission.ResultSummary = $"Keşif ekibi başarıyla döndü! {mission.RewardDescription} kazanıldı.";
+
+                        response.LogMessages.Add($"🚀 KEŞİF BAŞARILI: '{mission.Name}' tamamlandı! {mission.RewardDescription}");
+
+                        var successEvent = new ColonyEvent(
+                            colonyId: request.ColonyId,
+                            sol: stats.Sol,
+                            title: $"Keşif Başarılı: {mission.Name}",
+                            message: $"{mission.TargetZone} bölgesine düzenlenen keşif operasyonu başarıyla tamamlandı. Kazanımlar: {mission.RewardDescription}",
+                            type: EventType.Success
+                        );
+                        await colonyEventRepository.AddAsync(successEvent);
+                    }
+                    else
+                    {
+                        mission.Status = MissionStatus.Failed;
+                        decimal salvagedMinerals = Math.Round(mission.RewardMinerals * 0.25m);
+                        stats.Minerals += salvagedMinerals;
+                        mission.ResultSummary = $"Arazi şartları nedeniyle keşif aracı hasar gördü. Kısmi kurtarma: +{salvagedMinerals} t Maden.";
+
+                        response.LogMessages.Add($"⚠️ KEŞİF BAŞARISIZ: '{mission.Name}' ekibi hasar gördü. Kurtarılan: +{salvagedMinerals} t Maden.");
+
+                        var failEvent = new ColonyEvent(
+                            colonyId: request.ColonyId,
+                            sol: stats.Sol,
+                            title: $"Keşif Başarısız: {mission.Name}",
+                            message: $"{mission.TargetZone} bölgesinde zorlu yüzey koşulları nedeniyle rover hasar aldı ve görev iptal edildi.",
+                            type: EventType.Warning
+                        );
+                        await colonyEventRepository.AddAsync(failEvent);
+                    }
+
+                    await explorationMissionRepository.UpdateAsync(mission);
+                }
+                else
+                {
+                    await explorationMissionRepository.UpdateAsync(mission);
+                    response.LogMessages.Add($"🔭 Keşif Yolda: '{mission.Name}' (Kalan Süre: {mission.RemainingSols} Sol).");
                 }
             }
 

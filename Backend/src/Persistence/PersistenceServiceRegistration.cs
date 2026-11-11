@@ -66,5 +66,6 @@ public static class PersistenceServiceRegistration
         services.AddScoped<IColonistRepository, ColonistRepository>();
         services.AddScoped<ITechnologyRepository, TechnologyRepository>();
         services.AddScoped<IColonyEventRepository, ColonyEventRepository>();
+        services.AddScoped<IExplorationMissionRepository, ExplorationMissionRepository>();
     }
 }

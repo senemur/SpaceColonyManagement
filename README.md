@@ -491,11 +491,11 @@ Frontend/src/
 
 ### Sprint 9 — Exploration
 
-* [ ] Exploration missions
-* [ ] Mission duration
-* [ ] Mission costs
-* [ ] Mission results
-* [ ] Exploration history
+* [x] Exploration missions
+* [x] Mission duration
+* [x] Mission costs
+* [x] Mission results
+* [x] Exploration history
 
 ### Sprint 10 — Polish & Testing
 
@@ -530,8 +530,8 @@ The project should remain understandable while gradually becoming more complex.
 
 ## 🚧 Current Status
 
-**Sprint 8 — Completed**
+**Sprint 9 — Completed**
 
-Random events system implemented across backend and frontend (probabilistic triggering, duration tracking, resource & production modifiers, event history log).
+Exploration missions system implemented across backend and frontend (mission dispatch, resource costs, Sol duration tracking, risk/reward outcome calculation, exploration history log).
 
-**Next: Sprint 9 — Exploration**
+**Next: Sprint 10 — Polish & Testing**

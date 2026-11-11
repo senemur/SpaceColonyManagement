@@ -112,6 +112,88 @@ public static class DbInitializer
             };
             context.ColonyEvents.AddRange(event1, event2);
 
+            var mission1 = new ExplorationMission
+            {
+                Id = 1,
+                ColonyId = 1,
+                Name = "Görünmeyen Kanyon Buz Analizi",
+                TargetZone = "Güney Krateri A-2",
+                Description = "Kanyonun gölgede kalan krater tabanında buzul yatakları ve su kaynakları taranacak.",
+                RiskLevel = MissionRiskLevel.Low,
+                Status = MissionStatus.Available,
+                DurationInSols = 1,
+                RemainingSols = 1,
+                EnergyCost = 25,
+                WaterCost = 5,
+                CreditsCost = 0,
+                RewardMinerals = 50,
+                RewardWater = 250,
+                RewardCredits = 100,
+                RewardDescription = "+250 Su, +50 Maden, +100 Kredi"
+            };
+
+            var mission2 = new ExplorationMission
+            {
+                Id = 2,
+                ColonyId = 1,
+                Name = "Olympus Mons Vadi Taraması",
+                TargetZone = "Kuzey Sektörü 4",
+                Description = "Güneş sisteminin en yüksek volkanının eteklerinde yüksek tenörlü demir ve titanyum cevherleşmesi aranacak.",
+                RiskLevel = MissionRiskLevel.Medium,
+                Status = MissionStatus.Available,
+                DurationInSols = 2,
+                RemainingSols = 2,
+                EnergyCost = 50,
+                WaterCost = 15,
+                CreditsCost = 200,
+                RewardMinerals = 400,
+                RewardWater = 150,
+                RewardCredits = 500,
+                RewardDescription = "+400 Maden, +150 Su, +500 Kredi"
+            };
+
+            var mission3 = new ExplorationMission
+            {
+                Id = 3,
+                ColonyId = 1,
+                Name = "Eski Yeraltı Mağara Araştırması",
+                TargetZone = "Derin Lav Tüpleri B-9",
+                Description = "Yüzey radyasyonundan izole lav tüplerinde jeolojik yapı ve gizemli artefakt arayışı.",
+                RiskLevel = MissionRiskLevel.High,
+                Status = MissionStatus.Available,
+                DurationInSols = 3,
+                RemainingSols = 3,
+                EnergyCost = 90,
+                WaterCost = 25,
+                CreditsCost = 500,
+                RewardMinerals = 650,
+                RewardWater = 300,
+                RewardCredits = 2000,
+                RewardDescription = "+650 Maden, +300 Su, +2000 Kredi & Nadir Artefakt"
+            };
+
+            var mission4 = new ExplorationMission
+            {
+                Id = 4,
+                ColonyId = 1,
+                Name = "Elysium Krateri Jeotermal Taraması",
+                TargetZone = "Elysium Planitia",
+                Description = "Volkanik kökenli sıcak su buharı çıkışları ve kristalize mineral tabakaları taranacak.",
+                RiskLevel = MissionRiskLevel.Medium,
+                Status = MissionStatus.Available,
+                DurationInSols = 2,
+                RemainingSols = 2,
+                EnergyCost = 40,
+                WaterCost = 10,
+                CreditsCost = 300,
+                RewardMinerals = 300,
+                RewardWater = 100,
+                RewardCredits = 800,
+                RewardDescription = "+300 Maden, +100 Su, +800 Kredi"
+            };
+
+            context.ExplorationMissions.AddRange(mission1, mission2, mission3, mission4);
+
             context.SaveChanges();
         }
     }

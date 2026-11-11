@@ -15,6 +15,7 @@ public class BaseDbContext(DbContextOptions dbContextOptions, IConfiguration con
     public DbSet<Colonist> Colonists { get; set; }
     public DbSet<Technology> Technologies { get; set; }
     public DbSet<ColonyEvent> ColonyEvents { get; set; }
+    public DbSet<ExplorationMission> ExplorationMissions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
