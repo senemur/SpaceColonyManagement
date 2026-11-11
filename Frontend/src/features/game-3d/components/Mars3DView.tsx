@@ -3,20 +3,23 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { initMars3D } from '../engine/mars3d';
-import { useColonyOverview } from '@/features/colony/api/colonyApi';
+import { useColonyById } from '@/features/colony/api/colonyApi';
 import { useBuildings } from '@/features/buildings/api/buildingsApi';
 import { useColonists } from '@/features/colonists/api/colonistsApi';
+import { useActiveColony } from '@/features/colony/context/ColonyContext';
 import BuildingInspectPanel from './BuildingInspectPanel';
 
 export default function Mars3DView() {
-  const { data: colonyOverview } = useColonyOverview();
-  const { data: buildings } = useBuildings(1);
-  const { data: colonists } = useColonists(1);
+  const { activeColonyId, activeColony, activeZone } = useActiveColony();
+  const { data: colonyOverview } = useColonyById(activeColonyId);
+  const { data: buildings } = useBuildings(activeColonyId);
+  const { data: colonists } = useColonists(activeColonyId);
   const [currentBuilding, setCurrentBuilding] = useState<{ name: string; id?: number } | null>(null);
 
   useEffect(() => {
     // Run the full 3D Mars scene simulation engine connected with backend data
     const cleanup = initMars3D({
+      colonyId: activeColonyId,
       initialColony: colonyOverview,
       initialBuildings: buildings,
       initialColonists: colonists,
@@ -27,7 +30,7 @@ export default function Mars3DView() {
     return () => {
       if (cleanup) cleanup();
     };
-  }, [colonyOverview, buildings, colonists]);
+  }, [activeColonyId, colonyOverview, buildings, colonists]);
 
   const handleExitBuilding = () => {
     if (typeof window !== 'undefined') {
@@ -108,6 +111,7 @@ export default function Mars3DView() {
         <BuildingInspectPanel
           buildingName={currentBuilding.name}
           buildingId={currentBuilding.id}
+          colonyId={activeColonyId}
           onExitBuilding={handleExitBuilding}
         />
       )}
@@ -132,7 +136,7 @@ export default function Mars3DView() {
       <aside className="right-col">
         <div className="minimap glass">
           <canvas id="minimap" width="220" height="220"></canvas>
-          <div className="mm-label">ARES VALLIS</div>
+          <div className="mm-label">{activeZone.name.toUpperCase()}</div>
         </div>
         <div className="inspect glass" id="inspect" hidden>
           <header>

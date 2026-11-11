@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useColonyOverview, useNextSol, useOfflineProgress, NextSolResponse, OfflineProgressResponse } from '../api/colonyApi';
+import { useColonyById, useNextSol, useOfflineProgress, NextSolResponse, OfflineProgressResponse } from '../api/colonyApi';
+import { useActiveColony } from '../context/ColonyContext';
 import OfflineProgressionModal from './OfflineProgressionModal';
 import { 
   Zap, 
@@ -21,10 +22,12 @@ import {
   History
 } from 'lucide-react';
 
-export default function ResourceBar({ colonyId = 1 }: { colonyId?: number }) {
-  const { data: colony, isLoading } = useColonyOverview();
-  const nextSolMutation = useNextSol(colonyId);
-  const offlineMutation = useOfflineProgress(colonyId);
+export default function ResourceBar({ colonyId }: { colonyId?: number }) {
+  const { activeColonyId } = useActiveColony();
+  const effectiveColonyId = colonyId ?? activeColonyId;
+  const { data: colony, isLoading } = useColonyById(effectiveColonyId);
+  const nextSolMutation = useNextSol(effectiveColonyId);
+  const offlineMutation = useOfflineProgress(effectiveColonyId);
   const [report, setReport] = useState<NextSolResponse | null>(null);
   const [offlineReport, setOfflineReport] = useState<OfflineProgressResponse | null>(null);
 
@@ -38,7 +41,7 @@ export default function ResourceBar({ colonyId = 1 }: { colonyId?: number }) {
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colonyId]);
+  }, [effectiveColonyId]);
 
   const stats = colony?.stats;
 

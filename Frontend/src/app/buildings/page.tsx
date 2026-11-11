@@ -6,13 +6,15 @@ import ResourceBar from '@/features/colony/components/ResourceBar';
 import { Building2, PlusCircle, X } from 'lucide-react';
 import { useCreateBuilding } from '@/features/buildings/api/buildingsApi';
 import { BuildingType } from '@/features/buildings/types';
+import { useActiveColony } from '@/features/colony/context/ColonyContext';
 
 export default function BuildingsPage() {
+  const { activeColonyId, activeColony, activeZone } = useActiveColony();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [type, setType] = useState<BuildingType>(BuildingType.Habitat);
   
-  const createMutation = useCreateBuilding(1);
+  const createMutation = useCreateBuilding(activeColonyId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,7 @@ export default function BuildingsPage() {
 
     createMutation.mutate(
       {
-        colonyId: 1,
+        colonyId: activeColonyId,
         name: name.trim(),
         buildingType: type,
         maxWorkers,
@@ -51,7 +53,7 @@ export default function BuildingsPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 w-full space-y-6">
-      <ResourceBar />
+      <ResourceBar colonyId={activeColonyId} />
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 backdrop-blur-md">
         <div className="flex items-center gap-3">
@@ -59,8 +61,22 @@ export default function BuildingsPage() {
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-100">Koloni Yapıları ve Tesisler</h1>
-            <p className="text-xs text-slate-400">Supabase canlı veritabanı üzerinden tesis yönetimi ve inşaat.</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold text-slate-100">Koloni Yapıları ve Tesisler</h1>
+              <span
+                className="px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                style={{
+                  backgroundColor: `${activeZone.color}20`,
+                  borderColor: activeZone.color,
+                  color: activeZone.color,
+                }}
+              >
+                {activeColony?.name ?? activeZone.name}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              {activeColony?.location ?? activeZone.location} üssü için tesis yönetimi, enerji şebekesi ve inşaat.
+            </p>
           </div>
         </div>
 
@@ -73,7 +89,7 @@ export default function BuildingsPage() {
         </button>
       </div>
 
-      <BuildingGrid colonyId={1} />
+      <BuildingGrid colonyId={activeColonyId} />
 
       {/* İnşaat Modalı */}
       {isModalOpen && (

@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import ResourceBar from '@/features/colony/components/ResourceBar';
 import { useMissions, useStartMission, ExplorationMission } from '@/features/exploration/api/explorationApi';
-import { useColonyOverview } from '@/features/colony/api/colonyApi';
+import { useActiveColony } from '@/features/colony/context/ColonyContext';
 import {
   Compass,
   Send,
@@ -23,9 +23,10 @@ import {
 } from 'lucide-react';
 
 export default function ExplorationPage() {
-  const { data: missions = [], isLoading } = useMissions(1);
-  const { data: colony } = useColonyOverview();
-  const startMissionMutation = useStartMission(1);
+  const { activeColonyId, activeColony, activeZone } = useActiveColony();
+  const { data: missions = [], isLoading } = useMissions(activeColonyId);
+  const colony = activeColony;
+  const startMissionMutation = useStartMission(activeColonyId);
 
   const [filter, setFilter] = useState<'all' | 'available' | 'in_progress' | 'history'>('all');
   const [actionError, setActionError] = useState<string | null>(null);
@@ -81,7 +82,7 @@ export default function ExplorationPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 w-full space-y-6">
-      <ResourceBar />
+      <ResourceBar colonyId={activeColonyId} />
 
       {/* Header Banner */}
       <div className="bg-slate-900/60 p-4 md:p-5 rounded-2xl border border-slate-800 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -90,14 +91,26 @@ export default function ExplorationPage() {
             <Compass className="w-6 h-6 animate-spin-slow" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-              Mars Keşif Operasyonları
-              {inProgressMissions.length > 0 && (
-                <span className="animate-pulse bg-purple-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  {inProgressMissions.length} Keşif Yolda
-                </span>
-              )}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                Mars Keşif Operasyonları
+                {inProgressMissions.length > 0 && (
+                  <span className="animate-pulse bg-purple-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    {inProgressMissions.length} Keşif Yolda
+                  </span>
+                )}
+              </h1>
+              <span
+                className="px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                style={{
+                  backgroundColor: `${activeZone.color}20`,
+                  borderColor: activeZone.color,
+                  color: activeZone.color,
+                }}
+              >
+                {activeColony?.name ?? activeZone.name}
+              </span>
+            </div>
             <p className="text-xs text-slate-400">
               Rover filonuzu ve bilim insanlarını bilinmeyen kraterlere göndererek kaynak ve artefakt toplayın.
             </p>

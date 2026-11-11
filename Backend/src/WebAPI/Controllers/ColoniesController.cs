@@ -21,6 +21,13 @@ public class ColoniesController : BaseController
         return Created(uri: "", result);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await Mediator.Send(new Application.Features.Colonies.Queries.GetAll.GetAllColoniesQuery());
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById([FromRoute] int id)
     {

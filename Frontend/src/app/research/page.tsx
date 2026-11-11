@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import ResourceBar from '@/features/colony/components/ResourceBar';
 import { useTechTree, useStartResearch, Technology } from '@/features/research/api/researchApi';
+import { useActiveColony } from '@/features/colony/context/ColonyContext';
 import {
   FlaskConical,
   Play,
@@ -19,7 +20,8 @@ import {
 } from 'lucide-react';
 
 export default function ResearchPage() {
-  const colonyId = 1;
+  const { activeColonyId, activeColony, activeZone } = useActiveColony();
+  const colonyId = activeColonyId;
   const { data: techs, isLoading, isError, refetch } = useTechTree(colonyId);
   const startResearchMutation = useStartResearch(colonyId);
 
@@ -73,6 +75,16 @@ export default function ResearchPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-slate-100">Mars Teknoloji & Araştırma Ağacı</h1>
+              <span
+                className="px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                style={{
+                  backgroundColor: `${activeZone.color}20`,
+                  borderColor: activeZone.color,
+                  color: activeZone.color,
+                }}
+              >
+                {activeColony?.name ?? activeZone.name}
+              </span>
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
               Yeni teknolojiler araştırarak üretim verimliliğinizi katlayın ve bina inşa maliyetlerini düşürün.

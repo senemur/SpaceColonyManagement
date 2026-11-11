@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import ResourceBar from '@/features/colony/components/ResourceBar';
 import { useEvents, ColonyEvent } from '@/features/events/api/eventsApi';
+import { useActiveColony } from '@/features/colony/context/ColonyContext';
 import {
   ScrollText,
   Info,
@@ -22,7 +23,8 @@ import {
 } from 'lucide-react';
 
 export default function EventsPage() {
-  const { data: events = [], isLoading } = useEvents(1);
+  const { activeColonyId, activeColony, activeZone } = useActiveColony();
+  const { data: events = [], isLoading } = useEvents(activeColonyId);
   const [filter, setFilter] = useState<'all' | 'active' | 'Critical' | 'Warning' | 'Success' | 'Info'>('all');
 
   const activeEvents = useMemo(() => events.filter((e) => e.isActive), [events]);
@@ -119,7 +121,7 @@ export default function EventsPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 w-full space-y-6">
-      <ResourceBar />
+      <ResourceBar colonyId={activeColonyId} />
 
       {/* Header Banner */}
       <div className="bg-slate-900/60 p-4 md:p-5 rounded-2xl border border-slate-800 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -128,14 +130,26 @@ export default function EventsPage() {
             <ScrollText className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-              Koloni Olay ve Bildirim Günlüğü
-              {activeEvents.length > 0 && (
-                <span className="animate-pulse bg-rose-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  {activeEvents.length} Aktif Durum
-                </span>
-              )}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                Koloni Olay ve Bildirim Günlüğü
+                {activeEvents.length > 0 && (
+                  <span className="animate-pulse bg-rose-500 text-slate-950 font-black text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    {activeEvents.length} Aktif Durum
+                  </span>
+                )}
+              </h1>
+              <span
+                className="px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                style={{
+                  backgroundColor: `${activeZone.color}20`,
+                  borderColor: activeZone.color,
+                  color: activeZone.color,
+                }}
+              >
+                {activeColony?.name ?? activeZone.name}
+              </span>
+            </div>
             <p className="text-xs text-slate-400">Mars üssünüzdeki tüm kritik gelişmeler, fırtınalar, keşifler ve sistem raporları.</p>
           </div>
         </div>

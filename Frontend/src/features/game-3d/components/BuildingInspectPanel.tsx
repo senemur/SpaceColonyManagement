@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 interface BuildingInspectPanelProps {
   buildingName: string | null;
   buildingId?: number;
+  colonyId?: number;
   onExitBuilding: () => void;
   onActionCompleted?: (res: PerformColonyActionResponse) => void;
 }
@@ -15,6 +16,7 @@ interface BuildingInspectPanelProps {
 export default function BuildingInspectPanel({
   buildingName,
   buildingId,
+  colonyId = 1,
   onExitBuilding,
   onActionCompleted,
 }: BuildingInspectPanelProps) {
@@ -34,7 +36,7 @@ export default function BuildingInspectPanel({
   const executeAction = async (actionType: string, defaultAmount: number, label: string) => {
     try {
       setIsLoading(true);
-      const res = await performColonyAction(1, actionType, defaultAmount, buildingId);
+      const res = await performColonyAction(colonyId, actionType, defaultAmount, buildingId);
       setTaskStatus(res.message || `${label} başarıyla tamamlandı!`);
       
       // Invalidate queries so all tabs/stats update

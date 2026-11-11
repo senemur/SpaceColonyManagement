@@ -24,7 +24,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { ColonyZone } from '@/features/colony/types';
-import { COLONY_ZONES, useColonyById } from '@/features/colony/api/colonyApi';
+import { COLONY_ZONES } from '@/features/colony/api/colonyApi';
+import { useActiveColony } from '@/features/colony/context/ColonyContext';
 import { useBuildings } from '@/features/buildings/api/buildingsApi';
 import { BuildingType } from '@/features/buildings/types';
 import { useColonists } from '@/features/colonists/api/colonistsApi';
@@ -40,14 +41,20 @@ const MarsGlobeScene = dynamic(() => import('@/features/colony/components/MarsGl
 });
 
 export default function DashboardHomePage() {
-  // Sayfa açıldığında varsayılan olarak ilk koloni (Ares Prime - id: 1) seçili başlar
-  const [selectedZone, setSelectedZone] = useState<ColonyZone>(COLONY_ZONES[0]);
+  // Global aktif koloni context'inden seçili koloniyi alıyoruz
+  const {
+    activeColonyId,
+    setActiveColonyId,
+    activeZone,
+    allZones,
+    activeColony: colony,
+    isLoading,
+    refetch,
+  } = useActiveColony();
 
-  // Backend API'den seçili koloninin gerçek verilerini çekiyoruz
-  const { data: colony, isLoading, isError, refetch } = useColonyById(selectedZone.id);
-
-    // Seçili koloninin gerçek binalarını çekiyoruz
-  const { data: buildings } = useBuildings(selectedZone.id);
+  // Seçili koloninin gerçek binalarını ve mürettebatını çekiyoruz
+  const { data: buildings } = useBuildings(activeColonyId);
+  const { data: colonists } = useColonists(activeColonyId);
 
   // Backend'den gelen stats nesnesi (yükleniyorsa veya yoksa güvenli fallback değerleri)
   const stats = colony?.stats;
@@ -118,8 +125,6 @@ export default function DashboardHomePage() {
     { name: 'Güneş Paneli Tarlası', level: 4, status: 'Online', output: `+${stats?.power ?? 200} kW Güç/sol`, workers: 'Otomatik', icon: Zap },
     { name: 'Yeraltı Buz Çıkarma Tesisi', level: 2, status: 'Online', output: '+80 L Su/sol', workers: '2/2', icon: Droplet },
   ];
-    // Seçili koloninin gerçek mürettebatını çekiyoruz
-  const { data: colonists } = useColonists(selectedZone.id);
 
   // Mürettebat canlı hesaplamaları
   const totalColonists = colonists?.length ?? stats?.population ?? 0;
@@ -138,9 +143,9 @@ export default function DashboardHomePage() {
           <div className="flex flex-col items-center gap-4 w-full md:w-auto">
             <div className="w-full md:w-80 h-72 shrink-0 relative">
               <MarsGlobeScene
-                colonyZones={COLONY_ZONES}
-                selectedZoneId={selectedZone.id}
-                onZoneClick={(zone) => setSelectedZone(zone)}
+                colonyZones={allZones}
+                selectedZoneId={activeColonyId}
+                onZoneClick={(zone) => setActiveColonyId(zone.id)}
                 onZoneDoubleClick={() => {
                   window.location.href = '/colony';
                 }}
@@ -149,12 +154,12 @@ export default function DashboardHomePage() {
 
             {/* Koloni Butonları */}
             <div className="flex flex-wrap justify-center gap-2 w-full md:w-80">
-              {COLONY_ZONES.map((zone) => (
+              {allZones.map((zone) => (
                 <button
                   key={zone.id}
-                  onClick={() => setSelectedZone(zone)}
+                  onClick={() => setActiveColonyId(zone.id)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                    selectedZone.id === zone.id
+                    activeColonyId === zone.id
                       ? 'bg-rose-500/20 border-rose-500/60 text-rose-200 shadow-lg shadow-rose-950/50 scale-105'
                       : 'bg-slate-900/80 border-slate-700 text-slate-400 hover:border-slate-500'
                   }`}
@@ -173,14 +178,14 @@ export default function DashboardHomePage() {
               {/* Üst Başlık */}
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-3.5 h-3.5 rounded-full animate-pulse" style={{ backgroundColor: selectedZone.color }} />
+                  <div className="w-3.5 h-3.5 rounded-full animate-pulse" style={{ backgroundColor: activeZone.color }} />
                   <div>
                     <h1 className="text-2xl font-black text-slate-100 tracking-tight">
-                      {colony?.name ?? selectedZone.name}
+                      {colony?.name ?? activeZone.name}
                     </h1>
                     <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                       <MapPin className="w-3.5 h-3.5 text-rose-400" /> 
-                      {colony?.location ?? selectedZone.location} · {colony?.planet ?? 'Mars'}
+                      {colony?.location ?? activeZone.location} · {colony?.planet ?? 'Mars'}
                     </p>
                   </div>
                 </div>
@@ -323,7 +328,7 @@ export default function DashboardHomePage() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-amber-400" /> Koloni Tesisleri ({colony?.name ?? selectedZone.name})
+              <Building2 className="w-4 h-4 text-amber-400" /> Koloni Tesisleri ({colony?.name ?? activeZone.name})
             </h2>
             <Link href="/buildings" className="text-xs font-semibold text-rose-400 hover:underline">
               Tümünü Yönet ({buildings?.length ?? 0})
@@ -483,7 +488,7 @@ export default function DashboardHomePage() {
                   <span>Supabase Veritabanı Senkronize</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Aktif</span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">Koloni ID {selectedZone.id} verileri başarıyla yüklendi.</p>
+                <p className="text-xs text-slate-400 mt-0.5">Koloni ID {activeColonyId} verileri başarıyla yüklendi.</p>
                 <span className="text-[10px] text-slate-500 mt-1 block">Şimdi</span>
               </div>
             </div>

@@ -6,6 +6,7 @@ import { axiosClient } from "@/shared/api/axiosClient";
 
 export function initMars3D(options = {}) {
   const {
+    colonyId = 1,
     initialColony = null,
     initialBuildings = null,
     initialColonists = null,
@@ -42,7 +43,7 @@ export function initMars3D(options = {}) {
   // Background fetch to sync with backend if initial data was null or needs sync
   (async () => {
     try {
-      const overviewRes = await axiosClient.get("/colonies/overview?id=1");
+      const overviewRes = await axiosClient.get(`/colonies/overview?id=${colonyId}`);
       if (overviewRes?.data?.stats) {
         const stats = overviewRes.data.stats;
         colony.sol = stats.sol;
@@ -60,7 +61,7 @@ export function initMars3D(options = {}) {
 
   async function triggerColonyAction(actionType, amount = 0, buildingId = null) {
     try {
-      const res = await performColonyAction(1, actionType, amount, buildingId);
+      const res = await performColonyAction(colonyId, actionType, amount, buildingId);
       if (res && res.stats) {
         colony.sol = res.stats.sol;
         colony.res.besin.v = Number(res.stats.food);

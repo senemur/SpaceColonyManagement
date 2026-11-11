@@ -6,13 +6,15 @@ import ResourceBar from '@/features/colony/components/ResourceBar';
 import { Users, UserPlus, X, Rocket } from 'lucide-react';
 import { useCreateColonist } from '@/features/colonists/api/colonistsApi';
 import { ColonistRole } from '@/features/colonists/types';
+import { useActiveColony } from '@/features/colony/context/ColonyContext';
 
 export default function ColonistsPage() {
+  const { activeColonyId, activeColony, activeZone } = useActiveColony();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
   const [role, setRole] = useState<ColonistRole>(ColonistRole.Worker);
 
-  const createMutation = useCreateColonist(1);
+  const createMutation = useCreateColonist(activeColonyId);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function ColonistsPage() {
 
     createMutation.mutate(
       {
-        colonyId: 1,
+        colonyId: activeColonyId,
         name: name.trim(),
         role: Number(role),
       },
@@ -35,7 +37,7 @@ export default function ColonistsPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 w-full space-y-6">
-      <ResourceBar />
+      <ResourceBar colonyId={activeColonyId} />
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 backdrop-blur-md">
         <div className="flex items-center gap-3">
@@ -43,8 +45,22 @@ export default function ColonistsPage() {
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-slate-100">Koloni Mürettebatı</h1>
-            <p className="text-xs text-slate-400">Mars ekibinizin sağlık, moral ve görev durumunu canlı yönetin.</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold text-slate-100">Koloni Mürettebatı</h1>
+              <span
+                className="px-2.5 py-0.5 rounded-full text-xs font-bold border"
+                style={{
+                  backgroundColor: `${activeZone.color}20`,
+                  borderColor: activeZone.color,
+                  color: activeZone.color,
+                }}
+              >
+                {activeColony?.name ?? activeZone.name}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              {activeColony?.location ?? activeZone.location} üssünüzdeki ekibinizin sağlık, moral ve görev durumunu canlı yönetin.
+            </p>
           </div>
         </div>
 
@@ -57,7 +73,7 @@ export default function ColonistsPage() {
         </button>
       </div>
 
-      <ColonistList colonyId={1} />
+      <ColonistList colonyId={activeColonyId} />
 
       {/* Kolonist Ekleme Modalı */}
       {isModalOpen && (

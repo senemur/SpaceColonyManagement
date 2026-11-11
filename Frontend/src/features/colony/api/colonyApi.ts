@@ -26,11 +26,108 @@ export const COLONY_ZONES: ColonyZone[] = [
   { id: 3, name: 'Arcadia Base', location: 'Arcadia Planitia', lat: 47, lon: -168, color: '#3ddc97' },
 ];
 
+export const fetchAllColonies = async (): Promise<ColonyOverview[]> => {
+  try {
+    const res = await axiosClient.get<ColonyOverview[]>('/colonies');
+    if (res.data && res.data.length > 0) {
+      return res.data;
+    }
+    throw new Error('No colonies returned');
+  } catch {
+    return [
+      {
+        id: 1,
+        name: 'Ares Prime',
+        description: 'Ana merkez üssü',
+        commander: 'John Ares',
+        planet: 'Mars',
+        location: 'Valles Marineris',
+        stats: {
+          sol: 2,
+          population: 6,
+          maxPopulation: 25,
+          power: 250,
+          maxPower: 250,
+          water: 76,
+          maxWater: 100,
+          oxygen: 88,
+          maxOxygen: 100,
+          food: 296,
+          maxFood: 500,
+          minerals: 1000,
+          credits: 25000,
+          safetyScore: 100,
+        },
+      },
+      {
+        id: 2,
+        name: 'Olympus Station',
+        description: 'Olympus Mons volkanik araştırma üssü',
+        commander: 'Dr. Hakan Vural',
+        planet: 'Mars',
+        location: 'Olympus Mons',
+        stats: {
+          sol: 142,
+          population: 12,
+          maxPopulation: 24,
+          power: 380,
+          maxPower: 500,
+          water: 85,
+          maxWater: 100,
+          oxygen: 96,
+          maxOxygen: 100,
+          food: 410,
+          maxFood: 600,
+          minerals: 2850,
+          credits: 45000,
+          safetyScore: 94,
+        },
+      },
+      {
+        id: 3,
+        name: 'Arcadia Base',
+        description: 'Arcadia Planitia buzul madenciliği üssü',
+        commander: 'Sarah Connor',
+        planet: 'Mars',
+        location: 'Arcadia Planitia',
+        stats: {
+          sol: 85,
+          population: 8,
+          maxPopulation: 20,
+          power: 220,
+          maxPower: 300,
+          water: 95,
+          maxWater: 100,
+          oxygen: 92,
+          maxOxygen: 100,
+          food: 310,
+          maxFood: 500,
+          minerals: 1950,
+          credits: 32000,
+          safetyScore: 98,
+        },
+      },
+    ];
+  }
+};
+
+export const useColonies = () => {
+  return useQuery({
+    queryKey: ['colonies'],
+    queryFn: fetchAllColonies,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
 export const fetchColonyById = async (id: number): Promise<ColonyOverview> => {
   try {
     const res = await axiosClient.get<ColonyOverview>(`/colonies/overview?id=${id}`);
     return res.data;
   } catch {
+    const all = await fetchAllColonies();
+    const found = all.find(c => c.id === id);
+    if (found) return found;
+
     return {
       id,
       name: COLONY_ZONES.find(z => z.id === id)?.name ?? 'Bilinmeyen Koloni',
@@ -52,12 +149,12 @@ export const useColonyById = (id: number) => {
   });
 };
 
-export const fetchColonyOverview = async (): Promise<ColonyOverview> => {
-  return fetchColonyById(1);
+export const fetchColonyOverview = async (id: number = 1): Promise<ColonyOverview> => {
+  return fetchColonyById(id);
 };
 
-export const useColonyOverview = () => {
-  return useColonyById(1);
+export const useColonyOverview = (id: number = 1) => {
+  return useColonyById(id);
 };
 
 export interface NextSolResponse {

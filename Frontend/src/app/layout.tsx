@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import QueryProvider from '@/shared/providers/QueryProvider';
+import { ColonyProvider } from '@/features/colony/context/ColonyContext';
 import Navbar from '@/shared/components/Navbar';
 
 export const metadata: Metadata = {
@@ -17,8 +18,10 @@ export default function RootLayout({
     <html lang="tr" className="dark h-full">
       <body className="min-h-screen bg-slate-950 text-slate-100 antialiased font-sans selection:bg-rose-500 selection:text-white flex flex-col">
         <QueryProvider>
-          <Navbar />
-          <main className="flex-1 pt-14 relative flex flex-col">{children}</main>
+          <ColonyProvider>
+            <Navbar />
+            <main className="flex-1 pt-14 relative flex flex-col">{children}</main>
+          </ColonyProvider>
         </QueryProvider>
       </body>
     </html>
