@@ -27,9 +27,6 @@ export default function OfflineProgressionModal({ report, onClose }: Props) {
             <div>
               <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
                 Çevrimdışı İlerleme Raporu
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Sprint 4
-                </span>
               </h2>
               <p className="text-xs text-slate-400">Üsse tekrar hoş geldiniz, Komutan!</p>
             </div>

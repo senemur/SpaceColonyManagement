@@ -107,7 +107,7 @@ export default function ResourceBar({ colonyId }: { colonyId?: number }) {
           onClick={handleSyncOffline}
           disabled={offlineMutation.isPending}
           className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-slate-100 border border-slate-700 transition-all active:scale-95 disabled:opacity-50 shrink-0"
-          title="Çevrimdışı geçen süreyi eşitle ve üretimi al (Sprint 4)"
+          title="Çevrimdışı geçen süreyi eşitle ve üretimi al"
         >
           <History className={`w-3.5 h-3.5 text-amber-400 ${offlineMutation.isPending ? 'animate-spin' : ''}`} />
           <span className="hidden sm:inline">Eşitle</span>
