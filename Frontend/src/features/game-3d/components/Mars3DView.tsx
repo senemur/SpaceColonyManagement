@@ -24,7 +24,15 @@ export default function Mars3DView() {
       initialBuildings: buildings,
       initialColonists: colonists,
       onEnterBuilding: (b: { name: string; id?: number }) => setCurrentBuilding(b),
-      onExitBuilding: () => setCurrentBuilding(null),
+      onExitBuilding: () => {
+        setCurrentBuilding(null);
+        if (typeof document !== 'undefined') {
+          const card = document.getElementById('chTargetCard');
+          if (card) card.style.display = 'none';
+          const crosshair = document.getElementById('crosshair');
+          if (crosshair) crosshair.classList.remove('locked', 'working');
+        }
+      },
     });
 
     return () => {
@@ -35,6 +43,10 @@ export default function Mars3DView() {
   const handleExitBuilding = () => {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'q', code: 'KeyQ' }));
+      const card = document.getElementById('chTargetCard');
+      if (card) card.style.display = 'none';
+      const crosshair = document.getElementById('crosshair');
+      if (crosshair) crosshair.classList.remove('locked', 'working');
     }
     setCurrentBuilding(null);
   };

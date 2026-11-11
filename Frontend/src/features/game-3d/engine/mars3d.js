@@ -1294,9 +1294,26 @@ export function initMars3D(options = {}) {
     h.interior.group.visible = false;
     taskProgress = 0;
     taskTarget = null;
+    taskHolding = false;
     taskListKey = "";
     lastTaskListKey = "";
+    lastHoverKey = "";
     hideTaskPanel();
+
+    // Dışarı çıkınca nişangah HUD'unu ve hedef kartını tamamen sıfırla
+    const ch = $("#crosshair");
+    if (ch) ch.classList.remove("locked", "working");
+    const chTargetCard = $("#chTargetCard");
+    if (chTargetCard) chTargetCard.style.display = "none";
+    const ring = $("#chRingBar");
+    if (ring) {
+      ring.style.opacity = "0";
+      ring.style.strokeDashoffset = "144.51";
+    }
+
+    renderTaskBar();
+    updateHover();
+
     // Restore scene background and fog
     scene.background = null;
     scene.fog = new THREE.Fog(0xb8603a, 120, 420);
@@ -1718,6 +1735,17 @@ export function initMars3D(options = {}) {
     const chTargetName = $("#chTargetName");
     const chTargetHint = $("#chTargetHint");
 
+    // OYUNCU BİNADAN ÇIKTIYSA VEYA İÇERİDE DEĞİLSE TÜM NİŞANGAH KARTINI VE EFEKTLERİ KAPAT
+    if (!player.inside) {
+      if (ch) ch.classList.remove("locked", "working");
+      if (ring) {
+        ring.style.opacity = "0";
+        ring.style.strokeDashoffset = "144.51";
+      }
+      if (chTargetCard) chTargetCard.style.display = "none";
+      return;
+    }
+
     const percent = Math.round(taskProgress * 100);
     const isHolding = taskHolding && taskProgress > 0;
 
@@ -1747,16 +1775,13 @@ export function initMars3D(options = {}) {
     }
 
     if (chTargetCard && chTargetName && chTargetHint) {
+      // Hedef kartı YALNIZCA doğrudan bir istasyona bakılıyorsa gösterilir
       if (taskTarget) {
         chTargetCard.style.display = "flex";
         chTargetName.textContent = taskTarget.label;
         chTargetHint.innerHTML = taskProgress > 0
           ? `<b>İşlem Yapılıyor... %${percent}</b>`
           : `<b>[ E ]</b> Tuşunu Basılı Tut · <span class="ch-rew">${taskTarget.rewardText || ""}</span>`;
-      } else if (player.inside) {
-        chTargetCard.style.display = "flex";
-        chTargetName.textContent = player.inside.b.n;
-        chTargetHint.textContent = "İstasyonun yanındaki mavi halkaya yaklaş ve bak";
       } else {
         chTargetCard.style.display = "none";
       }
@@ -2149,6 +2174,8 @@ export function initMars3D(options = {}) {
       (player.inside ? "I" + (taskTarget ? taskTarget.id : "") : "");
     if (key === lastHoverKey) return;
     lastHoverKey = key;
+
+    renderTaskBar();
 
     const crosshair = $("#crosshair");
     if (crosshair) crosshair.classList.toggle("active", !!hit || !!h || !!taskTarget);
